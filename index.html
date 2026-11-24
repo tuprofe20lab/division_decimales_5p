@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuProfe20 Lab · División de números decimales</title>
+
+    <!-- Tailwind CSS, React 18, ReactDOM y Babel -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- KaTeX para fórmulas matemáticas nítidas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+        html, body { margin: 0; padding: 0; background: #0a0322; }
+        body { font-family: 'Nunito', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        button { user-select: none; }
+
+        /* Fondo neón principal */
+        .app-bg {
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 0, 170, 0.35), transparent 38%),
+                radial-gradient(circle at 88% 12%, rgba(0, 229, 255, 0.30), transparent 40%),
+                radial-gradient(circle at 70% 92%, rgba(198, 255, 0, 0.16), transparent 42%),
+                linear-gradient(135deg, #0a0322 0%, #1b0a52 45%, #33084f 100%);
+        }
+        .stage-bg {
+            background:
+                radial-gradient(circle at 50% 45%, rgba(124, 58, 237, 0.45), transparent 60%),
+                linear-gradient(180deg, #120838 0%, #070219 100%);
+        }
+        .blob { position: absolute; width: 42vmax; height: 42vmax; border-radius: 9999px; filter: blur(90px); opacity: 0.22; animation: blobMove 20s ease-in-out infinite; }
+        @keyframes blobMove { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(6vw,-4vh) scale(1.1); } 66% { transform: translate(-5vw,5vh) scale(0.92); } }
+
+        .neon-text { background: linear-gradient(90deg, #00f0ff, #ff3df2, #ffe600); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .neon-text-big { background: linear-gradient(90deg, #00f0ff 0%, #ff3df2 40%, #ff9a00 70%, #c6ff00 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 6s linear infinite; filter: drop-shadow(0 0 18px rgba(255, 61, 242, 0.45)); }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        @keyframes floatUp { 0% { transform: translateY(105vh) rotate(0deg); } 100% { transform: translateY(-110vh) rotate(360deg); } }
+        @keyframes slideInRight { 0% { opacity: 0; transform: translateX(14px); } 100% { opacity: 1; transform: translateX(0); } }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes robotThinkTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg) translateY(-3px); } }
+        @keyframes robotJump { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px); } }
+        @keyframes robotTalkArmL { 0%, 100% { transform: rotate(45deg); } 50% { transform: rotate(95deg); } }
+        @keyframes robotTalkArmR { 0%, 100% { transform: rotate(-45deg); } 50% { transform: rotate(-95deg); } }
+        @keyframes confettiExplosion { 0% { transform: translate(0,0) scale(1) rotate(0deg); opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; } }
+        @keyframes finalGlowNeon { 0%, 100% { box-shadow: 0 0 10px rgba(16,185,129,0.45); } 50% { box-shadow: 0 0 28px rgba(198,255,0,0.9); } }
+
+        .animate-floatUp { animation: floatUp linear infinite; }
+        .animate-slideInRight { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-robotFloat { animation: robotFloat 3s ease-in-out infinite; }
+        .animate-robotThinkTilt { animation: robotThinkTilt 2s ease-in-out infinite; }
+        .animate-robotJump { animation: robotJump 1s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; }
+        .animate-robotTalkArmL { animation: robotTalkArmL 0.6s ease-in-out infinite; }
+        .animate-robotTalkArmR { animation: robotTalkArmR 0.6s ease-in-out infinite 0.1s; }
+        .animate-confettiExplosion { animation: confettiExplosion 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .animate-finalGlowNeon { animation: finalGlowNeon 1.6s ease-in-out infinite; }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none !important; }
+        .scrollbar-hide { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+
+        /* Deslizadores neón */
+        input[type=range].neon-range { -webkit-appearance: none; appearance: none; height: 12px; border-radius: 9999px; outline: none; cursor: pointer; }
+        input[type=range].neon-range::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 9999px; background: #fff; border: 4px solid #ff3df2; box-shadow: 0 0 14px #ff3df2, 0 0 4px #fff; }
+        input[type=range].neon-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 9999px; background: #fff; border: 4px solid #ff3df2; box-shadow: 0 0 14px #ff3df2; }
+
+
+        /* Escala general: se agranda en pantallas digitales (1920 px) y se mantiene legible en celular */
+        html { font-size: clamp(14px, calc(5px + 0.83vw), 22px); }
+
+        /* ---------- Galera (división formato peruano) ---------- */
+        .galera { display: inline-grid; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+        .gl-cell { position: relative; height: 1.28em; display: flex; align-items: center; justify-content: center; border-radius: 0.18em; transition: background 0.25s, color 0.25s, box-shadow 0.25s; }
+        .gl-div { color: #0f172a; }
+        .gl-prod { color: #2563eb; }
+        .gl-rem { color: #0f172a; }
+        .gl-minus { color: #2563eb; justify-content: flex-end; padding-right: 0.05em; }
+        .gl-added { color: #ff1fd1 !important; text-shadow: 0 0 10px rgba(255,31,209,0.45); animation: popIn 0.45s cubic-bezier(.34,1.8,.5,1); }
+        .gl-hl { background: #fff36b; box-shadow: 0 0 0 0.06em #facc15, 0 0 18px rgba(250,204,21,0.8); }
+        .gl-new { animation: rowIn 0.45s ease-out; }
+        .gl-line { align-self: end; height: 0.08em; background: #0f172a; border-radius: 9999px; margin-bottom: 0.02em; }
+        .gl-comma { position: absolute; right: -0.2em; bottom: 0.02em; color: #ff1fd1; font-size: 0.95em; }
+        .gl-q { color: #7c3aed; letter-spacing: 0.04em; }
+        .gl-pending { color: #ff1fd1; animation: pulseQ 1s ease-in-out infinite; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes rowIn { 0% { opacity: 0; transform: translateY(-0.4em); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseQ { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(1.15); } }
+
+        /* Coma que salta */
+        .coma-mov { position: absolute; bottom: 0.05em; color: #ff1fd1; text-shadow: 0 0 12px rgba(255,31,209,0.7); transition: left 0.9s cubic-bezier(.34,1.5,.5,1), opacity 0.6s; }
+        .coma-hop { animation: hop 0.9s ease-in-out; }
+        @keyframes hop { 0% { transform: translateY(0); } 45% { transform: translateY(-0.75em) scale(1.35); } 100% { transform: translateY(0); } }
+        .digit-cell { display: inline-block; text-align: center; overflow: hidden; transition: width 0.7s cubic-bezier(.34,1.5,.5,1), opacity 0.6s, transform 0.6s; }
+
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-10px); } 40%,80% { transform: translateX(10px); } }
+        .animate-shake { animation: shake 0.45s ease-in-out; }
+        @keyframes timerPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+        .animate-timer { animation: timerPulse 0.5s ease-in-out infinite; }
+        .key-btn { touch-action: manipulation; }
+
+        /* KaTeX */
+        .katex { font-weight: 800 !important; }
+        .katex-display { margin: 0 !important; padding: 0 !important; }
+        .math-flow-line { width: 100%; display: flex; align-items: center; overflow-x: auto; padding: 0.15rem 0; }
+        .math-card .katex { font-size: clamp(0.9rem, 1.2vw, 1.12rem) !important; color: #0f172a !important; }
+        .math-current .katex { font-size: clamp(1rem, 1.45vw, 1.35rem) !important; color: #0f172a !important; }
+        .math-final .katex { font-size: clamp(1.05rem, 1.55vw, 1.45rem) !important; color: #065f46 !important; }
+        .math-history .katex { font-size: clamp(0.88rem, 1.15vw, 1.1rem) !important; color: #475569 !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, memo, useCallback, useMemo } = React;
+
+
+        // =========================================================================
+        // 1. ICONOS SVG INLINE
+        // =========================================================================
+        const Icon = ({ paths, className = "", size = 24, fill = "none", strokeWidth = "2.5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: paths }} />
+        );
+
+        const VolumeX = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>' />;
+        const Volume2 = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' />;
+        const Rocket = (p) => <Icon {...p} paths='<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>' />;
+        const Sparkles = (p) => <Icon {...p} paths='<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 3v4"/><path d="M17 5h4"/>' />;
+        const Home = (p) => <Icon {...p} paths='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+        const ChevronLeft = (p) => <Icon {...p} paths='<polyline points="15 18 9 12 15 6"/>' />;
+        const ChevronRight = (p) => <Icon {...p} paths='<polyline points="9 18 15 12 9 6"/>' />;
+        const BoxIcon = (p) => <Icon {...p} paths='<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>' />;
+        const HandPointer = (p) => <Icon {...p} paths='<path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>' />;
+
+        // =========================================================================
+        // 2. CONTROLADOR DE AUDIO (WEB AUDIO API)
+        // =========================================================================
+        const AudioController = {
+            ctx: null, muted: false, bgmNode: null,
+            init: function() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.ctx = new AudioContext();
+            },
+            startBGM: function() {
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                if (this.bgmNode) return;
+                const mainGain = this.ctx.createGain();
+                mainGain.gain.value = this.muted ? 0 : 0.045;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 760;
+                filter.connect(mainGain);
+                mainGain.connect(this.ctx.destination);
+                this.bgmNode = { mainGain, filter, interval: null };
+                const chords = [[55, 60, 64, 71], [52, 57, 64, 71], [53, 57, 60, 64], [50, 55, 59, 64]];
+                let chordIndex = 0;
+                const playChord = () => {
+                    if (this.ctx.state !== 'running') return;
+                    const chord = chords[chordIndex];
+                    chordIndex = (chordIndex + 1) % chords.length;
+                    chord.forEach((midi, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+                        const now = this.ctx.currentTime;
+                        const delay = i * 0.2;
+                        gain.gain.setValueAtTime(0, now + delay);
+                        gain.gain.linearRampToValueAtTime(0.14, now + delay + 2);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 7.5);
+                        osc.connect(gain);
+                        gain.connect(filter);
+                        osc.start(now + delay);
+                        osc.stop(now + delay + 7.5);
+                    });
+                };
+                playChord();
+                this.bgmNode.interval = setInterval(playChord, 6000);
+            },
+            play: function(type) {
+                if (this.muted || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(840, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'hover') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(660, now);
+                    osc.frequency.exponentialRampToValueAtTime(780, now + 0.05);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'pop-reverse') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(640, now);
+                    osc.frequency.exponentialRampToValueAtTime(280, now + 0.12);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'success') {
+                    osc.disconnect();
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.value = freq;
+                        o.connect(g);
+                        g.connect(this.ctx.destination);
+                        const startTime = now + (i * 0.07);
+                        g.gain.setValueAtTime(0, startTime);
+                        g.gain.linearRampToValueAtTime(0.18, startTime + 0.04);
+                        g.gain.linearRampToValueAtTime(0, startTime + 0.35);
+                        o.start(startTime);
+                        o.stop(startTime + 0.35);
+                    });
+                } else if (type === 'swoosh') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.exponentialRampToValueAtTime(75, now + 0.18);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                }
+            },
+            toggleMute: function() {
+                this.muted = !this.muted;
+                if (this.bgmNode && this.ctx) {
+                    this.bgmNode.mainGain.gain.setTargetAtTime(this.muted ? 0 : 0.045, this.ctx.currentTime, 0.1);
+                }
+                return this.muted;
+            }
+        };
+
+        // =========================================================================
+        // 3. COMPONENTE KATEX
+        // =========================================================================
+        const MathDisplay = memo(({ latex, className = "", inline = false, align = "left" }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    try {
+                        window.katex.render(latex, containerRef.current, {
+                            displayMode: !inline,
+                            throwOnError: false,
+                            strict: false,
+                            trust: true
+                        });
+                    } catch (e) {
+                        containerRef.current.innerText = latex;
+                    }
+                }
+            }, [latex, inline]);
+
+            if (inline) return <span ref={containerRef} className={`inline-block align-middle ${className}`} />;
+            return (
+                <div className={`math-flow-line scrollbar-hide ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}>
+                    <div ref={containerRef} className={align === 'center' ? 'text-center' : 'text-left'} />
+                </div>
+            );
+        });
+
+        // =========================================================================
+        // 4. PIZARRA INTERACTIVA COMPLETA
+        // =========================================================================
+        const DrawingCanvas = () => {
+            const canvasRef = useRef(null);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [isDrawMode, setIsDrawMode] = useState(false);
+            const [tool, setTool] = useState('pen');
+            const [isSnapMode, setIsSnapMode] = useState(false);
+            const [penColor, setPenColor] = useState('#ef4444');
+            const [penWidth, setPenWidth] = useState(6);
+            const penPointsRef = useRef([]);
+            const activePointerRef = useRef(null);
+            const savedImageRef = useRef(null);
+            const startPosRef = useRef({ x: 0, y: 0 });
+            const historyRef = useRef([]);
+
+            const playPop = () => { AudioController.init(); AudioController.startBGM(); AudioController.play('pop'); };
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas || !canvas.parentElement) return;
+                let rafId = null;
+                const updateSize = (entries) => {
+                    const entry = entries[entries.length - 1];
+                    if (!entry) return;
+                    const width = Math.floor(entry.contentRect.width);
+                    const height = Math.floor(entry.contentRect.height);
+                    if (width <= 0 || height <= 0) return;
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        if (!canvas || (canvas.width === width && canvas.height === height)) return;
+                        const ctx = canvas.getContext('2d');
+                        let imgData = null;
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) {}
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        if (imgData) ctx.putImageData(imgData, 0, 0);
+                    });
+                };
+                const observer = new ResizeObserver(updateSize);
+                observer.observe(canvas.parentElement);
+                return () => {
+                    if (rafId) cancelAnimationFrame(rafId);
+                    observer.disconnect();
+                };
+            }, []);
+
+            const renderPen = (points, straight = false) => {
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.putImageData(savedImageRef.current, 0, 0);
+                const angle = -15 * Math.PI / 180;
+                const c = Math.cos(angle), s = Math.sin(angle);
+                const local = points.map(p => ({ x: c * p.x + s * p.y, y: (-s * p.x + c * p.y) / 0.5 }));
+                ctx.save();
+                ctx.transform(c, s, -0.5 * s, 0.5 * c, 0, 0);
+                ctx.lineWidth = penWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = penColor;
+                ctx.fillStyle = penColor;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.beginPath();
+                ctx.moveTo(local[0].x, local[0].y);
+                if (local.length === 1) {
+                    ctx.arc(local[0].x, local[0].y, penWidth / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    if (!straight) {
+                        for (let i = 1; i < local.length - 1; i++) {
+                            const midpoint = {
+                                x: (local[i].x + local[i + 1].x) / 2,
+                                y: (local[i].y + local[i + 1].y) / 2
+                            };
+                            ctx.quadraticCurveTo(local[i].x, local[i].y, midpoint.x, midpoint.y);
+                        }
+                    }
+                    const last = local[local.length - 1];
+                    ctx.lineTo(last.x, last.y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            };
+
+            const startDrawing = (e) => {
+                if (!isDrawMode || activePointerRef.current !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+
+                historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = tool === 'highlighter' ? 24 : penWidth;
+                ctx.strokeStyle = tool === 'highlighter' ? `${penColor}4D` : penColor;
+                ctx.globalCompositeOperation = tool === 'highlighter' ? 'multiply' : 'source-over';
+
+                const startX = e.clientX - rect.left;
+                const startY = e.clientY - rect.top;
+
+                savedImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                startPosRef.current = { x: startX, y: startY };
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                penPointsRef.current = [{ x: startX, y: startY }];
+                activePointerRef.current = e.pointerId;
+                canvas.setPointerCapture(e.pointerId);
+                if (tool === 'pen') renderPen(penPointsRef.current);
+                setIsDrawing(true);
+            };
+
+            const draw = (e) => {
+                if (activePointerRef.current !== e.pointerId || !isDrawMode) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                if (isSnapMode || e.shiftKey) {
+                    ctx.putImageData(savedImageRef.current, 0, 0);
+                    const dx = currentX - startPosRef.current.x;
+                    const dy = currentY - startPosRef.current.y;
+                    const angle = Math.atan2(dy, dx);
+                    const snappedAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const snapX = startPosRef.current.x + Math.cos(snappedAngle) * dist;
+                    const snapY = startPosRef.current.y + Math.sin(snappedAngle) * dist;
+                    if (tool === 'pen') {
+                        renderPen([startPosRef.current, { x: snapX, y: snapY }], true);
+                        return;
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(startPosRef.current.x, startPosRef.current.y);
+                    ctx.lineTo(snapX, snapY);
+                    ctx.stroke();
+                } else {
+                    if (tool === 'pen') {
+                        const events = e.nativeEvent?.getCoalescedEvents?.() || [];
+                        const samples = events.length ? events : [e];
+                        samples.forEach(sample => penPointsRef.current.push({
+                            x: sample.clientX - rect.left,
+                            y: sample.clientY - rect.top
+                        }));
+                        renderPen(penPointsRef.current);
+                        return;
+                    }
+                    if (tool === 'highlighter') ctx.putImageData(savedImageRef.current, 0, 0);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                }
+            };
+
+            const stopDrawing = () => {
+                const canvas = canvasRef.current;
+                const pointer = activePointerRef.current;
+                activePointerRef.current = null;
+                if (pointer !== null && canvas && canvas.hasPointerCapture(pointer)) {
+                    canvas.releasePointerCapture(pointer);
+                }
+                if (isDrawing && canvas) {
+                    canvas.getContext('2d').closePath();
+                    setIsDrawing(false);
+                }
+            };
+
+            const selectTool = (nextTool) => {
+                stopDrawing();
+                playPop();
+                const enabled = nextTool !== 'selector' && !(isDrawMode && tool === nextTool);
+                setIsDrawMode(enabled);
+                if (nextTool !== 'selector') setTool(nextTool);
+            };
+
+            useEffect(() => {
+                const onKey = (event) => {
+                    if (event.key === 'Escape') {
+                        setIsDrawing(false);
+                        setIsDrawMode(false);
+                    }
+                    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+                        if (historyRef.current.length > 0 && canvasRef.current) {
+                            playPop();
+                            const lastState = historyRef.current.pop();
+                            canvasRef.current.getContext('2d').putImageData(lastState, 0, 0);
+                            savedImageRef.current = lastState;
+                        }
+                    }
+                };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const clearCanvas = () => {
+                playPop();
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                savedImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            };
+
+            const colors = [
+                { name: 'Rojo', hex: '#ef4444', tw: 'bg-[#ef4444]' },
+                { name: 'Negro', hex: '#0f172a', tw: 'bg-[#0f172a]' },
+                { name: 'Azul', hex: '#3b82f6', tw: 'bg-[#3b82f6]' },
+                { name: 'Verde', hex: '#22c55e', tw: 'bg-[#22c55e]' },
+                { name: 'Amarillo', hex: '#facc15', tw: 'bg-[#facc15]' }
+            ];
+
+            return (
+                <>
+                    <div style={{ zIndex: 120, pointerEvents: 'auto' }} className="absolute top-2 right-2 flex flex-wrap max-w-[calc(100%-1rem)] justify-end gap-1.5 bg-white/85 p-1.5 rounded-xl backdrop-blur-sm shadow-md border border-slate-200">
+                        <button onClick={() => selectTool('selector')} aria-pressed={!isDrawMode} title="Usar la simulación (Esc)" className={`px-2.5 py-1 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${!isDrawMode ? 'bg-cyan-500 text-white border-cyan-600' : 'bg-white text-slate-600 border-slate-300'}`}>🖱️ Usar</button>
+                        <button onClick={() => selectTool('pen')} className={`px-2.5 py-1 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isDrawMode && tool === 'pen' ? 'bg-indigo-500 text-white border-indigo-600 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>🖊️ Lápiz</button>
+                        <button onClick={() => selectTool('highlighter')} className={`px-2.5 py-1 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isDrawMode && tool === 'highlighter' ? 'bg-yellow-400 text-slate-900 border-yellow-500 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>🖍️ Resaltador</button>
+                        {isDrawMode && tool === 'pen' && (
+                            <label className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border-2 border-indigo-200 text-xs font-black text-slate-700">
+                                Grosor <input type="range" min="3" max="16" step="1" value={penWidth} onChange={e => setPenWidth(Number(e.target.value))} className="w-16 accent-indigo-600" />
+                            </label>
+                        )}
+                        {isDrawMode && (
+                            <>
+                                <button onClick={() => { playPop(); setIsSnapMode(!isSnapMode); }} className={`px-2.5 py-1 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isSnapMode ? 'bg-blue-500 text-white border-blue-600 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>📐 Recto</button>
+                                <button onClick={clearCanvas} className="px-2.5 py-1 text-xs font-black bg-white text-rose-600 border-2 border-rose-300 rounded-lg shadow-sm hover:bg-rose-50 active:scale-95 transition-all">🗑️ Limpiar</button>
+                                <div className="px-2 py-1 text-[11px] font-bold text-slate-400 hidden sm:flex items-center bg-white rounded-lg border border-slate-200">CTRL+Z</div>
+                            </>
+                        )}
+                    </div>
+                    {isDrawMode && (
+                        <div className="absolute top-1/2 right-3 -translate-y-1/2 z-[110] flex flex-col gap-2.5 p-2 bg-white/90 backdrop-blur-md rounded-xl border-[3px] border-slate-200 shadow-xl pointer-events-auto">
+                            {colors.map(c => (
+                                <button key={c.hex} onClick={() => { playPop(); setPenColor(c.hex); }} title={c.name} className={`w-8 h-8 rounded-full border-[3px] shadow-sm transition-all hover:scale-110 active:scale-95 ${c.tw} ${penColor === c.hex ? 'border-white outline outline-[3px] outline-slate-800 scale-110' : 'border-black/20'}`} />
+                            ))}
+                        </div>
+                    )}
+                    <canvas
+                        ref={canvasRef}
+                        style={{ zIndex: 100, pointerEvents: isDrawMode ? 'auto' : 'none', touchAction: isDrawMode ? 'none' : 'auto' }}
+                        className={`absolute inset-0 z-[100] touch-none ${isDrawMode ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`}
+                        onPointerDown={startDrawing}
+                        onPointerMove={draw}
+                        onPointerUp={e => { if (activePointerRef.current === e.pointerId) { draw(e); stopDrawing(); } }}
+                        onPointerLeave={e => { if (!e.currentTarget.hasPointerCapture(e.pointerId)) stopDrawing(); }}
+                        onLostPointerCapture={stopDrawing}
+                        onPointerCancel={stopDrawing}
+                    />
+                </>
+            );
+        };
+
+        // =========================================================================
+        // 3b. ROBOT ASISTENTE (de la simulación original de Danny)
+        // =========================================================================
+        const RobotAssistant = ({ step, maxSteps, isHighlighting }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1 && maxSteps > 1;
+
+            const getContainerAnim = () => {
+                if (isFinalStep) return 'animate-robotJump';
+                if (isThinking) return 'animate-robotThinkTilt';
+                return 'animate-robotFloat';
+            };
+            const getArmLAnim = () => {
+                if (isFinalStep) return 'rotate-[150deg] animate-pulse';
+                if (step > 0 || isHighlighting) return 'animate-robotTalkArmL';
+                return 'rotate-45';
+            };
+            const getArmRAnim = () => {
+                if (isFinalStep) return '-rotate-[150deg] animate-pulse';
+                if (step > 0 || isHighlighting) return 'animate-robotTalkArmR';
+                return '-rotate-45';
+            };
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div></div>;
+                if (isHighlighting) return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-2.5 bg-yellow-300 rounded-full animate-ping"></div><div className="w-2.5 h-2.5 bg-yellow-300 rounded-full animate-ping"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-1.5"><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-4 h-2.5 bg-rose-400 rounded-b-full mt-1"></div>;
+                if (step === 0 && !isHighlighting) return <div className="w-3 h-1 bg-cyan-300 rounded-full mt-1"></div>;
+                return <div className="w-2.5 h-2.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-xl select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-3 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-white to-slate-200 rounded-xl border-[2.5px] border-indigo-400 shadow-xl flex flex-col items-center justify-center p-1">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1 shadow-inner border-[1.5px] border-indigo-500">
+                            {getEyes()}
+                            {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        // @@MATH-START
+        // =========================================================================
+        // 4. MOTOR MATEMÁTICO PURO: DECIMALES, DIVISIÓN EN GALERA Y GENERADORES
+        // =========================================================================
+        // Un decimal se guarda como { n, d } = n / 10^d (enteros exactos, sin errores de coma flotante)
+        function parseDec(str) {
+            const s = String(str).replace(/\s/g, '').replace('.', ',');
+            if (!/^\d*(,\d*)?$/.test(s) || s === '' || s === ',') return null;
+            const [i, f = ''] = s.split(',');
+            const n = Number((i || '0') + f);
+            return { n, d: f.length };
+        }
+        function normDec(x) { let { n, d } = x; while (d > 0 && n % 10 === 0) { n /= 10; d--; } return { n, d }; }
+        function pow10Big(k) { let r = BigInt(1); for (let i = 0; i < k; i++) r = r * BigInt(10); return r; }
+        function decEq(x, y) { if (!x || !y) return false; return BigInt(x.n) * pow10Big(y.d) === BigInt(y.n) * pow10Big(x.d); }
+        function mulDec(x, y) { return { n: x.n * y.n, d: x.d + y.d }; }
+        // Texto con coma decimal y espacio de miles (estilo Perú): 1 710 ; 869,85
+        function fmtDec(x, opts = {}) {
+            const { strip = true, miles = true } = opts;
+            const v = strip ? normDec(x) : x;
+            let s = String(v.n).padStart(v.d + 1, '0');
+            let ent = s.slice(0, s.length - v.d), fr = s.slice(s.length - v.d);
+            if (miles) ent = ent.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return fr ? `${ent},${fr}` : ent;
+        }
+        const fmtStr = (str, opts) => fmtDec(parseDec(str), opts);
+        const texStr = (str, opts) => fmtStr(str, opts).replace(',', '{,}').replace(/ /g, '\\,');
+
+        // ---------- División en galera (formato peruano) ----------
+        function makeDivision(aStr, bStr, maxExtra = 4) {
+            const A = parseDec(aStr), B = parseDec(bStr);
+            const k = B.d; // lugares que corremos la coma
+            let N = String(A.n).padStart(A.d + 1, '0'), dn;
+            let zerosAdded = 0;
+            if (A.d >= k) dn = A.d - k;
+            else { zerosAdded = k - A.d; N = N + '0'.repeat(zerosAdded); dn = 0; }
+            // quitamos ceros a la izquierda sobrantes (dejando al menos una cifra entera)
+            while (N.length - dn > 1 && N[0] === '0') N = N.slice(1);
+            const ip = N.length - dn;
+            const d = B.n;
+            const digits = N.split('').map(Number);
+            const L = digits.length;
+            let pos = 0, cur = 0;
+            do { cur = cur * 10 + digits[pos]; pos++; } while (cur < d && pos < ip);
+            const cycles = [];
+            let startCol = 0, endCol = pos - 1, extra = 0, quotient = '';
+            while (true) {
+                const q = Math.floor(cur / d), prod = q * d, rem = cur - prod;
+                quotient += String(q);
+                const c = { cur, startCol, endCol, q, prod, rem, next: { type: 'end' } };
+                cycles.push(c);
+                if (pos < L) {
+                    const comma = pos === ip;
+                    c.next = { type: 'bring', digit: digits[pos], col: pos, added: false, comma };
+                    if (comma) quotient += ',';
+                    cur = rem * 10 + digits[pos]; pos++;
+                } else if (rem !== 0 && extra < maxExtra) {
+                    const comma = pos === ip;
+                    c.next = { type: 'bring', digit: 0, col: pos, added: true, comma };
+                    if (comma) quotient += ',';
+                    cur = rem * 10; pos++; extra++;
+                } else break;
+                endCol = pos - 1; startCol = endCol - String(cur).length + 1;
+            }
+            const last = cycles[cycles.length - 1];
+            return {
+                a: aStr, b: bStr, A, B, k, N, ip, dn, d, zerosAdded, cycles, quotient,
+                exact: last.rem === 0, remainder: last.rem, extraZeros: extra, cols: pos
+            };
+        }
+
+        // Fotogramas de la galera (cada uno es una foto completa del pizarrón)
+        function galeraFrames(div) {
+            const { cycles, d } = div;
+            const frames = [], rows = [];
+            let quotient = '', partialRow = -1;
+            const snap = (kind, msg, hl, ci) => frames.push({ kind, msg, quotient, ci, rows: rows.map(r => ({ ...r, added: r.added.slice() })), hl });
+            const c0 = cycles[0];
+            snap('start', c0.cur >= d
+                ? `Tomamos la primera cifra (o cifras) del dividendo que formen un número igual o mayor que ${d}: el ${c0.cur}.`
+                : `La parte entera (${c0.cur}) es menor que ${d}: el cociente empezará con 0.`, { row: -1, start: c0.startCol, end: c0.endCol }, 0);
+            cycles.forEach((c, i) => {
+                const hlP = partialRow === -1 ? { row: -1, start: c.startCol, end: c.endCol } : { row: partialRow };
+                quotient += String(c.q);
+                snap('q', c.q > 0
+                    ? `¿Cuántas veces cabe ${d} en ${c.cur}? ${c.q} veces (${c.q} × ${d} = ${c.prod}). Escribimos ${c.q} en el cociente.`
+                    : `${d} no cabe en ${c.cur}: escribimos 0 en el cociente.`, hlP, i);
+                if (c.q > 0) {
+                    const ps = String(c.prod);
+                    rows.push({ start: c.endCol - ps.length + 1, text: ps, kind: 'prod', added: [] });
+                    snap('mult', `Multiplicamos: ${c.q} × ${d} = ${c.prod}. Lo escribimos debajo del ${c.cur} para restar.`, { row: rows.length - 1 }, i);
+                    const rs = String(c.rem);
+                    rows.push({ start: c.endCol - rs.length + 1, text: rs, kind: 'rem', added: [] });
+                    partialRow = rows.length - 1;
+                    snap('sub', `Restamos: ${c.cur} − ${c.prod} = ${c.rem}.${c.rem === 0 && c.next.type === 'end' ? '' : ''}`, { row: partialRow }, i);
+                } else if (partialRow === -1 && c.next.type === 'bring' && !c.next.added) {
+                    // el número parcial sigue en el dividendo: solo "tomamos una cifra más"
+                    if (c.next.comma) quotient += ',';
+                    const nc = cycles[i + 1].cur;
+                    snap('bring', c.next.comma
+                        ? `Tomamos también el ${c.next.digit} (primera cifra después de la coma): ¡ponemos la coma en el cociente! Ahora tenemos ${nc}.`
+                        : `Tomamos también el ${c.next.digit}. Ahora tenemos ${nc}.`, { row: -1, start: cycles[i + 1].startCol, end: cycles[i + 1].endCol }, i);
+                    return;
+                } else if (partialRow === -1) {
+                    const rs = String(c.rem);
+                    rows.push({ start: c.endCol - rs.length + 1, text: rs, kind: 'rem', added: [] });
+                    partialRow = rows.length - 1;
+                }
+                if (c.next.type === 'bring') {
+                    const row = rows[partialRow];
+                    if (c.next.added) row.added.push(row.text.length);
+                    row.text += String(c.next.digit);
+                    if (c.next.comma) quotient += ',';
+                    const nc = cycles[i + 1].cur;
+                    let msg;
+                    if (c.next.added) msg = `El resto (${c.rem}) no es cero y ya no quedan cifras: añadimos un 0 al resto${c.next.comma ? ' y ponemos la coma en el cociente' : ''}. Ahora tenemos ${nc}.`;
+                    else if (c.next.comma) msg = `Bajamos el ${c.next.digit}, la primera cifra después de la coma: ¡ponemos la coma en el cociente! Ahora tenemos ${nc}.`;
+                    else msg = `Bajamos el ${c.next.digit}. Ahora tenemos ${nc}.`;
+                    snap('bring', msg, { row: partialRow }, i);
+                }
+            });
+            const q = fmtDec(parseDec(div.quotient), { strip: false });
+            snap('end', div.exact
+                ? `El resto es 0: ¡división terminada! ${fmtStr(div.a, { strip: false })} ÷ ${fmtStr(div.b)} = ${q} 🎉`
+                : `Paramos aquí: el cociente aproximado es ${q} y el resto es ${div.remainder}.`, null, cycles.length - 1);
+            return frames;
+        }
+
+        // ---------- Generadores aleatorios por nivel (siempre exactos) ----------
+        const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const decStr = (x) => fmtDec(x, { miles: false });
+        function genDivision(level) {
+            for (let t = 0; t < 500; t++) {
+                let a, b, q, kind;
+                if (level === 'facil') {
+                    // decimal ÷ entero de una cifra; cociente con 1 o 2 decimales
+                    const k = pick([1, 2]); const d = rnd(2, 9);
+                    const qn = k === 1 ? rnd(11, 299) : rnd(101, 999);
+                    if (qn % 10 === 0) continue;
+                    q = { n: qn, d: k }; b = { n: d, d: 0 }; a = mulDec(q, b);
+                    if (a.n % 10 === 0) continue; // que el dividendo tenga exactamente k decimales
+                    kind = 'decimal ÷ entero';
+                } else if (level === 'medio') {
+                    const tipo = pick(['dec2', 'resto', 'entdec']);
+                    if (tipo === 'dec2') {
+                        const k = pick([1, 2]); const d = rnd(11, 25);
+                        const qn = k === 1 ? rnd(11, 99) : rnd(101, 499);
+                        if (qn % 10 === 0) continue;
+                        q = { n: qn, d: k }; b = { n: d, d: 0 }; a = mulDec(q, b);
+                        if (a.n % 10 === 0) continue;
+                        kind = 'decimal ÷ entero';
+                    } else if (tipo === 'resto') {
+                        const d = pick([2, 4, 5, 8]); const N = rnd(5, 99);
+                        if (N % d === 0) continue;
+                        a = { n: N, d: 0 }; b = { n: d, d: 0 };
+                        q = normDec({ n: N * 1000 / d, d: 3 });
+                        kind = 'entero ÷ entero (resto ≠ 0)';
+                    } else {
+                        const bn = rnd(2, 95); if (bn % 10 === 0) continue;
+                        b = { n: bn, d: 1 }; const qi = rnd(2, 60);
+                        q = { n: qi, d: 0 }; a = normDec(mulDec(q, b));
+                        if (a.d !== 0) continue; // dividendo entero
+                        kind = 'entero ÷ decimal';
+                    }
+                } else {
+                    // decimal ÷ decimal
+                    const bd = pick([1, 1, 2]);
+                    const bn = bd === 1 ? rnd(11, 95) : rnd(11, 99);
+                    if (bn % 10 === 0) continue;
+                    b = { n: bn, d: bd };
+                    const qd = pick([0, 1, 1, 2]);
+                    const qn = qd === 0 ? rnd(2, 40) : qd === 1 ? rnd(11, 99) : rnd(101, 299);
+                    if (qd > 0 && qn % 10 === 0) continue;
+                    q = { n: qn, d: qd }; a = normDec(mulDec(q, b));
+                    if (a.d === 0) continue;
+                    kind = 'decimal ÷ decimal';
+                }
+                const as = decStr(a), bs = decStr(b);
+                const div = makeDivision(as, bs, 4);
+                if (!div.exact || div.N.length > 6 || String(div.d).length > 3 || a.d > 3) continue;
+                return { a: as, b: bs, q: decStr(normDec(q)), kind, level };
+            }
+            return { a: '72,96', b: '4', q: '18,24', kind: 'decimal ÷ entero', level };
+        }
+
+        // Opciones para la competencia: el cociente correcto y "errores típicos" con la coma
+        function quotientOptions(qStr) {
+            const q = normDec(parseDec(qStr));
+            const cand = [q, { n: q.n, d: q.d + 1 }, { n: q.n * 10, d: q.d }, { n: q.n, d: q.d + 2 }, { n: q.n + 1, d: q.d }, { n: Math.max(1, q.n - 1), d: q.d }, { n: q.n * 100, d: q.d }];
+            const seen = new Set(); const out = [];
+            cand.forEach(c => { const s = decStr(normDec(c)); if (!seen.has(s) && out.length < 4) { seen.add(s); out.push(s); } });
+            return out;
+        }
+        function genQuickQuestion() {
+            const t = pick(['div', 'div', 'div', 'coma']);
+            if (t === 'coma') {
+                const g = genDivision(pick(['medio', 'dificil']));
+                const B = parseDec(g.b);
+                if (B.d === 0) return genQuickQuestion();
+                return { type: 'coma', a: g.a, b: g.b, prompt: `Para dividir ${fmtStr(g.a)} ÷ ${fmtStr(g.b)}, ¿cuántos lugares corremos la coma (en el dividendo y en el divisor)?`, options: ['0', '1', '2', '3'], answer: String(B.d) };
+            }
+            const g = genDivision(pick(['facil', 'facil', 'medio', 'dificil']));
+            return { type: 'div', a: g.a, b: g.b, prompt: `¿Cuánto es ${fmtStr(g.a)} ÷ ${fmtStr(g.b)}?`, options: quotientOptions(g.q), answer: g.q };
+        }
+        // "¿Dónde va la coma?": cifras del cociente sin coma y posición correcta
+        function genComaGame() {
+            for (let t = 0; t < 200; t++) {
+                const g = genDivision(pick(['facil', 'medio', 'dificil']));
+                const q = normDec(parseDec(g.q));
+                if (q.n < 10) continue;
+                const digits = String(q.n);
+                const intLen = digits.length - q.d;
+                if (intLen < 1) continue;
+                return { ...g, digits, slot: intLen }; // slot = nº de cifras antes de la coma (= digits.length si no lleva coma)
+            }
+            return { a: '72,96', b: '4', q: '18,24', digits: '1824', slot: 2 };
+        }
+
+        // ---------- Datos: casos de teoría, ejercicios del libro y aplicaciones ----------
+        const THEORY_CASES = [
+            { id: 'dec-ent', icon: '➗', title: 'Decimal ÷ entero', rule: 'Dividimos como si fueran enteros y, cuando bajamos la primera cifra decimal del dividendo, la coma «sube» al cociente.', a: '8,4', b: '3' },
+            { id: 'ent-dec', icon: '🔁', title: 'Entero ÷ decimal', rule: 'El divisor debe ser entero: corremos su coma a la derecha y añadimos al dividendo tantos ceros como lugares corrimos.', a: '63', b: '0,7' },
+            { id: 'dec-dec', icon: '🚀', title: 'Decimal ÷ decimal', rule: 'Corremos la coma del divisor hasta que sea entero, y la del dividendo los MISMOS lugares (si faltan cifras, añadimos ceros).', a: '4,68', b: '1,2' },
+            { id: 'resto', icon: '0️⃣', title: 'Resto ≠ 0', rule: 'Si el resto no es cero y ya no quedan cifras, añadimos un cero al resto y ponemos una coma en el cociente para seguir dividiendo.', a: '7', b: '4' }
+        ];
+
+        const BOOK = [
+            { id: '1a', tag: '1a', title: 'Efectúa', text: 'Efectúa: **72,96 ÷ 4**', a: '72,96', b: '4', post: [], answer: '18,24', answerText: '72,96 ÷ 4 = 18,24' },
+            { id: '1b', tag: '1b', title: 'Efectúa', text: 'Efectúa: **148,5 ÷ 5**', a: '148,5', b: '5', post: [], answer: '29,7', answerText: '148,5 ÷ 5 = 29,7' },
+            { id: '1c', tag: '1c', title: 'Efectúa', text: 'Efectúa: **1 710 ÷ 1,8**', a: '1710', b: '1,8', post: [], answer: '950', answerText: '1 710 ÷ 1,8 = 950' },
+            { id: '2', tag: '2', title: 'Suma de cifras decimales', text: 'Divide **11,56 ÷ 3,2** y da como respuesta la **suma de las cifras decimales** del cociente.', a: '11,56', b: '3,2',
+              post: [
+                  { badge: 'Cifras decimales del cociente', latex: '3{,}\\underline{6125} \\;\\Rightarrow\\; 6,\\ 1,\\ 2,\\ 5', msg: 'Las cifras decimales son las que están después de la coma: 6, 1, 2 y 5.' },
+                  { badge: 'Sumamos', latex: '6 + 1 + 2 + 5 = \\boxed{14}', msg: '¡La suma de las cifras decimales es 14! 🎉' }
+              ], answer: '14', answerText: 'Cociente 3,6125 → suma de cifras decimales = 14' },
+            { id: '3', tag: '3', title: 'Halla a + b + c', text: 'Si **8,89 ÷ 3,5 = a,bc**, calcula **a + b + c**.', a: '8,89', b: '3,5',
+              post: [
+                  { badge: 'Comparamos', latex: 'a{,}bc = 2{,}54 \\;\\Rightarrow\\; a = 2,\\ b = 5,\\ c = 4', msg: 'Comparamos cifra por cifra: a = 2, b = 5 y c = 4.' },
+                  { badge: 'Sumamos', latex: 'a + b + c = 2 + 5 + 4 = \\boxed{11}', msg: '¡a + b + c = 11! 🎉' }
+              ], answer: '11', answerText: '8,89 ÷ 3,5 = 2,54 → a + b + c = 11' },
+            { id: '4', tag: '4', title: 'El cuadrado', text: 'El perímetro de un cuadrado mide **95,2 cm**. Calcula el **área** del cuadrado.', a: '95,2', b: '4',
+              pre: [{ badge: 'Planteamos', latex: '\\text{Perímetro} = 4 \\times \\text{lado} \\;\\Rightarrow\\; \\text{lado} = 95{,}2 \\div 4', msg: 'El cuadrado tiene 4 lados iguales: para hallar un lado, dividimos el perímetro entre 4.' }],
+              post: [
+                  { badge: 'El lado mide', latex: '\\text{lado} = 23{,}8\\ \\text{cm}', msg: 'Cada lado del cuadrado mide 23,8 cm.' },
+                  { badge: 'Calculamos el área', latex: 'A = \\text{lado}^2 = 23{,}8 \\times 23{,}8 = \\boxed{566{,}44\\ \\text{cm}^2}', msg: 'Multiplicamos 238 × 238 = 56 644 y separamos 2 decimales (1 + 1): 566,44 cm². 🎉' }
+              ], answer: '566,44', answerText: 'Lado = 23,8 cm → Área = 566,44 cm²' },
+            { id: '5', tag: '5', title: 'El triángulo', text: 'Calcula el área de un triángulo de **base 5,4 cm** y **altura 2,8 cm**.', a: '15,12', b: '2',
+              pre: [
+                  { badge: 'Fórmula', latex: 'A = \\dfrac{b \\times h}{2}', msg: 'El área del triángulo es base por altura, dividido entre 2.' },
+                  { badge: 'Multiplicamos base por altura', latex: '5{,}4 \\times 2{,}8 = 15{,}12', msg: '54 × 28 = 1 512 y separamos 2 decimales: 15,12. Ahora dividimos entre 2.' }
+              ],
+              post: [{ badge: 'Respuesta', latex: 'A = 15{,}12 \\div 2 = \\boxed{7{,}56\\ \\text{cm}^2}', msg: '¡El área del triángulo es 7,56 cm²! 🎉' }], answer: '7,56', answerText: 'A = (5,4 × 2,8) ÷ 2 = 15,12 ÷ 2 = 7,56 cm²' },
+            { id: '6a', tag: '6a', title: 'Los pantalones de buzo', emoji: '👖', text: 'Sara compra **15 pantalones de buzo** y paga **S/ 869,85**. ¿Cuánto cuesta cada pantalón?', a: '869,85', b: '15',
+              post: [{ badge: 'Respuesta', latex: '\\text{Cada pantalón cuesta } \\boxed{S/\\ 57{,}99}', msg: '¡Cada pantalón de buzo cuesta S/ 57,99! 🎉' }], answer: '57,99', answerText: 'S/ 869,85 ÷ 15 = S/ 57,99' },
+            { id: '6b', tag: '6b', title: 'Las botellas', emoji: '🧴', text: '¿Cuántas **botellas de 1,72 L** se llenan completamente con un **bidón de 41,28 L**?', a: '41,28', b: '1,72',
+              post: [{ badge: 'Respuesta', latex: '\\text{Se llenan } \\boxed{24 \\text{ botellas}}', msg: '¡Se llenan exactamente 24 botellas! 🎉' }], answer: '24', answerText: '41,28 ÷ 1,72 = 24 botellas' }
+        ];
+
+        const APPS = [
+            { id: 'pan', emoji: '🥖', color: '#ff9a00', title: 'Panes en la panadería', text: 'En la panadería, **12 panes** cuestan **S/ 4,80**. ¿Cuánto cuesta cada pan?', a: '4,80', b: '12', unit: 'S/', unitPos: 'pre', answer: '0,4', say: 'Cada pan cuesta S/ 0,40.' },
+            { id: 'pollo', emoji: '🍗', color: '#ff2e63', title: 'El pollo del mercado', text: 'Mamá compra **2,5 kg** de pollo en el mercado y paga **S/ 23,75**. ¿Cuánto cuesta el kilo?', a: '23,75', b: '2,5', unit: 'S/', unitPos: 'pre', answer: '9,5', say: 'El kilo de pollo cuesta S/ 9,50.' },
+            { id: 'cinta', emoji: '🎀', color: '#ff3df2', title: 'Cortando cinta', text: 'Una cinta de **7,5 m** se corta en trozos de **0,25 m**. ¿Cuántos trozos salen?', a: '7,5', b: '0,25', unit: 'trozos', unitPos: 'post', answer: '30', say: 'Salen 30 trozos de cinta.' },
+            { id: 'chicha', emoji: '🥤', color: '#b14bff', title: 'Chicha morada', text: 'Un bidón tiene **18,9 L** de chicha morada. ¿Cuántos vasos de **0,35 L** se pueden servir?', a: '18,9', b: '0,35', unit: 'vasos', unitPos: 'post', answer: '54', say: 'Se pueden servir 54 vasos.' },
+            { id: 'combi', emoji: '🚌', color: '#00c2ff', title: 'Pasaje en combi', text: '**4 amigos** pagan juntos **S/ 10,60** de pasaje. Si pagan lo mismo, ¿cuánto paga cada uno?', a: '10,60', b: '4', unit: 'S/', unitPos: 'pre', answer: '2,65', say: 'Cada amigo paga S/ 2,65.' },
+            { id: 'choco', emoji: '🍫', color: '#a16207', title: 'Bolsitas de chocotejas', text: 'Hay **1,2 kg** de chocotejas para empacar en bolsitas de **0,15 kg**. ¿Cuántas bolsitas se llenan?', a: '1,2', b: '0,15', unit: 'bolsitas', unitPos: 'post', answer: '8', say: 'Se llenan 8 bolsitas.' },
+            { id: 'carrera', emoji: '🏃', color: '#39ff14', title: 'La carrera por tramos', text: 'Una carrera de **10,5 km** se divide en **6 tramos** iguales. ¿Cuánto mide cada tramo?', a: '10,5', b: '6', unit: 'km', unitPos: 'post', answer: '1,75', say: 'Cada tramo mide 1,75 km.' },
+            { id: 'jugo', emoji: '🧃', color: '#c6ff00', title: 'Vasos de jugo', text: 'Con **5 L** de jugo de maracuyá, ¿cuántos vasos de **0,2 L** se llenan?', a: '5', b: '0,2', unit: 'vasos', unitPos: 'post', answer: '25', say: 'Se llenan 25 vasos.' }
+        ];
+        // @@MATH-END
+
+        // =========================================================================
+        // 5. PIEZAS DE INTERFAZ (MISMO ESTILO QUE «SÓLIDOS DE REVOLUCIÓN»)
+        // =========================================================================
+        const FloatingBackground = memo(() => {
+            const symbols = ['÷', '0,5', '3,2', ',', '72,96', '÷ 4', '× 10', 'S/', '1,72 L', '0,25'];
+            const colors = ['#00f0ff', '#ff3df2', '#c6ff00', '#ffe600', '#ff8a00', '#b14bff'];
+            const els = Array.from({ length: 22 }).map((_, i) => ({
+                id: i, symbol: symbols[i % symbols.length], color: colors[i % colors.length],
+                left: `${(i * 4.6 + 2) % 96}%`, dur: `${13 + (i % 7) * 2.3}s`, delay: `-${(i * 1.7) % 22}s`,
+                size: `${1 + (i % 4) * 0.45}rem`, op: 0.14 + (i % 3) * 0.05
+            }));
+            return (
+                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                    <div className="blob" style={{ background: '#ff00aa', top: '-10%', left: '-8%' }} />
+                    <div className="blob" style={{ background: '#00e5ff', top: '30%', right: '-12%', animationDelay: '-6s' }} />
+                    <div className="blob" style={{ background: '#7c3aed', bottom: '-15%', left: '25%', animationDelay: '-12s' }} />
+                    {els.map(el => (
+                        <div key={el.id} className="absolute font-black animate-floatUp" style={{ left: el.left, bottom: '-15%', fontSize: el.size, opacity: el.op, color: el.color, textShadow: `0 0 12px ${el.color}`, animationDuration: el.dur, animationDelay: el.delay }}>{el.symbol}</div>
+                    ))}
+                </div>
+            );
+        });
+
+        const Confetti = memo(() => {
+            const colors = ['#ffe600', '#00f0ff', '#ff3df2', '#c6ff00', '#b14bff', '#ff8a00'];
+            const pieces = Array.from({ length: 110 }).map((_, i) => ({
+                id: i, color: colors[i % colors.length], left: `${50 + (Math.random() * 20 - 10)}%`,
+                tx: `${(Math.random() - 0.5) * 1100}px`, ty: `${(Math.random() - 1) * 850}px`, rot: `${Math.random() * 720}deg`, delay: `${Math.random() * 0.2}s`
+            }));
+            return (
+                <div className="fixed inset-0 pointer-events-none z-[200] overflow-hidden">
+                    {pieces.map(p => (
+                        <div key={p.id} className={`absolute w-4 h-4 animate-confettiExplosion ${p.id % 2 ? 'rounded-full' : 'rounded-sm'}`} style={{ backgroundColor: p.color, boxShadow: `0 0 8px ${p.color}`, '--tx': p.tx, '--ty': p.ty, '--rot': p.rot, animationDelay: p.delay, left: p.left, top: '55%' }} />
+                    ))}
+                </div>
+            );
+        });
+        const useConfetti = () => {
+            const [n, setN] = useState(0);
+            const fire = useCallback(() => setN(x => x + 1), []);
+            useEffect(() => { if (!n) return; const t = setTimeout(() => setN(0), 2200); return () => clearTimeout(t); }, [n]);
+            return [n ? <Confetti key={n} /> : null, fire];
+        };
+
+        const RichText = ({ text, hl = 'text-[#ffe600]' }) => (
+            <>{text.split('**').map((part, i) => i % 2 ? <strong key={i} className={hl}>{part}</strong> : <span key={i}>{part}</span>)}</>
+        );
+        const Pill = ({ active, onClick, children, grad = 'from-[#ff2e93] to-[#7c3aed]', className = '', dark = false }) => (
+            <button onClick={onClick}
+                className={`shrink-0 px-4 py-2.5 rounded-2xl font-black text-sm sm:text-base border-2 transition-all active:scale-95 ${active ? `bg-gradient-to-r ${grad} ${dark ? 'text-[#0a0322]' : 'text-white'} border-white/80 shadow-[0_0_18px_rgba(255,61,242,0.55)] scale-[1.03]` : 'bg-white/10 text-white/85 border-white/25 hover:bg-white/20 hover:border-white/50'} ${className}`}>{children}</button>
+        );
+        const RobotSays = ({ text, step = 0, maxSteps = 1, highlight = false, className = '' }) => (
+            <div className={`flex items-end gap-3 ${className}`}>
+                <div className="shrink-0 pt-2"><RobotAssistant step={step} maxSteps={maxSteps} isHighlighting={highlight} /></div>
+                <div key={text} className="relative flex-1 animate-slideInRight bg-white text-slate-800 rounded-2xl rounded-bl-sm px-4 py-2.5 font-bold text-sm sm:text-base leading-snug border-[3px] border-[#00f0ff] shadow-[0_0_22px_rgba(0,240,255,0.45)]">{text}</div>
+            </div>
+        );
+        const NeonCard = ({ children, className = '' }) => (
+            <div className={`rounded-[1.6rem] bg-[#140a3a]/75 backdrop-blur-xl border-2 border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.45)] ${className}`}>{children}</div>
+        );
+        const BigBtn = ({ onClick, children, kind = 'hot', className = '', disabled = false }) => {
+            const k = {
+                hot: 'bg-gradient-to-r from-[#ff2e93] to-[#ff9a00] border-[#b4235f] text-white',
+                cool: 'bg-gradient-to-r from-[#00c2ff] to-[#7c3aed] border-[#4c1d95] text-white',
+                lime: 'bg-[#c6ff00] border-[#7a9c00] text-[#0a0322]',
+                ok: 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] text-white',
+                ghost: 'bg-white/10 border-white/30 text-white'
+            }[kind];
+            return <button onClick={onClick} disabled={disabled} className={`min-h-[3rem] px-5 rounded-2xl font-black text-base border-b-4 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-40 flex items-center justify-center gap-2 ${k} ${className}`}>{children}</button>;
+        };
+        const sfx = (t) => { AudioController.init(); AudioController.play(t); };
+
+        // ---------- GALERA ----------
+        const QuotientText = ({ q }) => <>{q.split('').map((ch, i) => ch === ',' ? <span key={i} className="text-[#ff1fd1]">,</span> : <span key={i}>{ch}</span>)}</>;
+
+        const Galera = ({ div, frame, pendingQ = false, pendingRem = null, size = 2.6, className = '' }) => {
+            const rows = frame ? frame.rows : [];
+            const hl = frame ? frame.hl : null;
+            const C = Math.max(div.cols, div.N.length) + 1;
+            const cells = [];
+            div.N.split('').forEach((ch, i) => {
+                const on = hl && hl.row === -1 && i >= hl.start && i <= hl.end;
+                cells.push(<div key={'d' + i} className={`gl-cell gl-div ${on ? 'gl-hl' : ''}`} style={{ gridColumn: i + 2, gridRow: 1 }}>{ch}{div.dn > 0 && i === div.ip - 1 && <span className="gl-comma">,</span>}</div>);
+            });
+            rows.forEach((r, ri) => {
+                const gr = ri + 2, on = hl && hl.row === ri, isNew = ri === rows.length - 1;
+                if (r.kind === 'prod') {
+                    cells.push(<div key={`m${ri}`} className={`gl-cell gl-minus ${isNew ? 'gl-new' : ''}`} style={{ gridColumn: r.start + 1, gridRow: gr }}>−</div>);
+                    cells.push(<div key={`u${ri}`} className="gl-line" style={{ gridColumn: `${r.start + 1} / ${r.start + r.text.length + 2}`, gridRow: gr }} />);
+                }
+                r.text.split('').forEach((ch, j) => {
+                    const added = r.added.includes(j);
+                    cells.push(<div key={`r${ri}-${j}`} className={`gl-cell ${r.kind === 'prod' ? 'gl-prod' : 'gl-rem'} ${on ? 'gl-hl' : ''} ${added ? 'gl-added' : ''} ${isNew ? 'gl-new' : ''}`} style={{ gridColumn: r.start + j + 2, gridRow: gr }}>{ch}</div>);
+                });
+            });
+            if (pendingRem) cells.push(<div key="pr" className="gl-cell gl-pending" style={{ gridColumn: pendingRem.endCol + 2, gridRow: rows.length + 2 }}>?</div>);
+            const nRows = Math.max(rows.length + (pendingRem ? 1 : 0) + 1, 2);
+            const q = frame ? frame.quotient : '';
+            return (
+                <div className={`overflow-x-auto scrollbar-hide ${className}`}>
+                    <div className="galera" style={{ fontSize: `clamp(1.5rem, ${size}rem, 9vw)`, gridTemplateColumns: `repeat(${C}, 0.72em) auto`, gridTemplateRows: `repeat(${nRows}, 1.28em)` }}>
+                        {cells}
+                        <div className="gl-cell gl-div !justify-start pl-[0.35em] pr-[0.6em] border-l-[0.09em] border-b-[0.09em] border-[#0f172a] !rounded-none" style={{ gridColumn: C + 1, gridRow: 1, marginLeft: '0.25em' }}>{div.d}</div>
+                        <div className="gl-q pl-[0.35em] whitespace-nowrap" style={{ gridColumn: C + 1, gridRow: 2, marginLeft: '0.25em', lineHeight: '1.28em' }}>
+                            <QuotientText q={q} />{pendingQ && <span className="gl-pending inline-block">?</span>}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ---------- LA COMA QUE SALTA ----------
+        const NumCells = ({ digits, commaBefore, commaAfter, phase, added = 0 }) => {
+            const W = 0.8;
+            const all = digits + '0'.repeat(added);
+            const after = phase === 'after';
+            const visLen = after ? all.length : digits.length;
+            const commaPos = after ? commaAfter : commaBefore;
+            let lead = 0;
+            if (after) { while (lead < commaAfter - 1 && all[lead] === '0') lead++; }
+            const commaOp = commaPos < visLen ? 1 : (after ? 0 : 0.3);
+            return (
+                <span className="relative inline-flex align-bottom" style={{ height: '1.3em' }}>
+                    {all.split('').map((ch, i) => {
+                        const isAdded = i >= digits.length, show = !isAdded || after, faded = after && i < lead;
+                        return <span key={i} className={`digit-cell ${isAdded ? 'text-[#ff1fd1]' : ''}`} style={{ width: show ? `${W}em` : 0, opacity: show ? (faded ? 0.22 : 1) : 0, transform: show ? 'scale(1)' : 'scale(0)', textDecoration: faded ? 'line-through' : 'none' }}>{ch}</span>;
+                    })}
+                    <span key={phase} className={`coma-mov ${after ? 'coma-hop' : ''}`} style={{ left: `calc(${commaPos * W}em - 0.13em)`, opacity: commaOp }}>,</span>
+                </span>
+            );
+        };
+        const ComaShift = ({ div, phase = 'before', size = 2.6 }) => {
+            const { A, B, k } = div;
+            const ad = String(A.n).padStart(A.d + 1, '0'), bd = String(B.n).padStart(B.d + 1, '0');
+            return (
+                <div className="flex flex-wrap items-center justify-center gap-x-[0.35em] font-black text-slate-900" style={{ fontSize: `clamp(1.5rem, ${size}rem, 9vw)` }}>
+                    <NumCells digits={ad} commaBefore={ad.length - A.d} commaAfter={ad.length - A.d + k} phase={phase} added={div.zerosAdded} />
+                    <span className="text-[#7c3aed]">÷</span>
+                    <NumCells digits={bd} commaBefore={bd.length - B.d} commaAfter={bd.length} phase={phase} />
+                    {phase === 'after' && k > 0 && (
+                        <span className="text-[0.4em] ml-[0.4em] px-[0.6em] py-[0.25em] rounded-full bg-[#ff1fd1] text-white animate-slideInRight whitespace-nowrap">→ coma {k} lugar{k > 1 ? 'es' : ''} a la derecha (× {10 ** k})</span>
+                    )}
+                </div>
+            );
+        };
+
+        // ---------- TECLADO NUMÉRICO GRANDE ----------
+        const Keypad = ({ value, onChange, onOk, allowComma = true, disabled = false, okLabel = '¡Comprobar!', maxLen = 9 }) => {
+            const press = (k) => {
+                if (disabled) return;
+                sfx('hover');
+                if (k === '⌫') onChange(value.slice(0, -1));
+                else if (k === ',') { if (allowComma && !value.includes(',')) onChange((value || '0') + ','); }
+                else if (value.length < maxLen) onChange(value + k);
+            };
+            const ref = useRef({}); ref.current = { press, onOk, disabled, value };
+            useEffect(() => {
+                const h = (e) => {
+                    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+                    if (/^[0-9]$/.test(e.key)) ref.current.press(e.key);
+                    else if (e.key === ',' || e.key === '.') ref.current.press(',');
+                    else if (e.key === 'Backspace') ref.current.press('⌫');
+                    else if (e.key === 'Enter' && !ref.current.disabled && ref.current.value) ref.current.onOk();
+                };
+                window.addEventListener('keydown', h);
+                return () => window.removeEventListener('keydown', h);
+            }, []);
+            const keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', allowComma ? ',' : '', '0', '⌫'];
+            return (
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                    {keys.map((k, i) => k === '' ? <div key={i} /> : (
+                        <button key={i} onClick={() => press(k)} disabled={disabled}
+                            className={`key-btn h-12 sm:h-[3.1rem] rounded-2xl font-black text-2xl sm:text-3xl border-b-[5px] active:border-b-0 active:translate-y-1 transition-all disabled:opacity-40 ${k === ',' ? 'bg-[#ff3df2] text-white border-[#a21caf]' : k === '⌫' ? 'bg-[#ff2e63] text-white border-[#9f1239]' : 'bg-white text-[#1b0a52] border-[#a5b4fc] hover:bg-[#eef2ff]'}`}>{k}</button>
+                    ))}
+                    <button onClick={() => { if (!disabled && value) onOk(); }} disabled={disabled || !value}
+                        className="key-btn col-span-3 h-12 sm:h-[3.1rem] rounded-2xl font-black text-xl sm:text-2xl text-white bg-gradient-to-r from-[#10b981] to-[#047857] border-b-[5px] border-[#065f46] active:border-b-0 active:translate-y-1 disabled:opacity-40">{okLabel}</button>
+                </div>
+            );
+        };
+        const Display = ({ value, placeholder = '?', state = 'idle', prefix = '', suffix = '' }) => (
+            <div className={`h-14 sm:h-[3.75rem] rounded-2xl bg-white border-[4px] flex items-center justify-center font-black text-3xl sm:text-5xl text-[#1b0a52] tabular-nums ${state === 'bad' ? 'border-[#ff2e63] animate-shake' : state === 'ok' ? 'border-[#10b981] shadow-[0_0_24px_rgba(16,185,129,0.7)]' : 'border-[#00f0ff] shadow-[0_0_18px_rgba(0,240,255,0.45)]'}`}>
+                {prefix && <span className="text-slate-400 mr-2 text-2xl sm:text-3xl">{prefix}</span>}
+                {value ? <QuotientText q={value} /> : <span className="text-slate-300">{placeholder}</span>}
+                {suffix && <span className="text-slate-400 ml-2 text-xl sm:text-2xl">{suffix}</span>}
+            </div>
+        );
+
+        // Tamaño de la galera según cuántas filas tendrá al final (para que quepa en la pantalla digital)
+        const galeraSize = (frames, max = 3.4, budget = 23) => {
+            const rows = frames[frames.length - 1].rows.length + 2;
+            return Math.max(1.7, Math.min(max, budget / (rows * 1.28)));
+        };
+
+        // ---------- PIZARRA PASO A PASO (galera animada) ----------
+        function buildSteps(div, pre = [], post = []) {
+            const frames = galeraFrames(div);
+            const steps = [];
+            const A = fmtStr(div.a, { strip: false }), Bs = fmtStr(div.b);
+            steps.push({ t: 'intro', badge: 'Observamos el divisor', msg: div.k === 0 ? `El divisor (${Bs}) es un número entero: ¡podemos dividir directamente en la galera!` : `El divisor (${Bs}) tiene ${div.k} cifra${div.k > 1 ? 's' : ''} decimal${div.k > 1 ? 'es' : ''}. Primero tenemos que convertirlo en entero.` });
+            pre.forEach(p => steps.push({ t: 'pre', card: p, badge: p.badge, msg: p.msg }));
+            if (div.k > 0) {
+                steps.push({ t: 'shift0', badge: 'Corremos la coma', msg: `Corremos la coma ${div.k} lugar${div.k > 1 ? 'es' : ''} a la derecha en el divisor y LOS MISMOS ${div.k} en el dividendo. ¡Mira cómo salta!` });
+                steps.push({ t: 'shift1', badge: 'Nueva división', msg: `${A} ÷ ${Bs} se convierte en ${fmtDec({ n: Number(div.N), d: div.dn }, { strip: false })} ÷ ${div.d}.${div.zerosAdded ? ` Como faltaban cifras, añadimos ${div.zerosAdded} cero${div.zerosAdded > 1 ? 's' : ''} al dividendo.` : ''} El resultado no cambia porque multiplicamos ambos por ${10 ** div.k}.` });
+            }
+            const g0 = steps.length;
+            frames.forEach((f, i) => steps.push({ t: 'galera', fi: i, badge: 'Dividimos', msg: f.msg, final: f.kind === 'end' && post.length === 0 }));
+            post.forEach((p, i) => steps.push({ t: 'post', card: p, badge: p.badge, msg: p.msg, final: i === post.length - 1 }));
+            return { steps, frames, g0 };
+        }
+
+        function DivisionStepper({ a, b, header, pre = [], post = [], accent = '#ff3df2', onDone }) {
+            const div = useMemo(() => makeDivision(a, b), [a, b]);
+            const { steps, frames, g0 } = useMemo(() => buildSteps(div, pre, post), [div]);
+            const size = galeraSize(frames);
+            const [step, setStep] = useState(0);
+            const [confetti, fire] = useConfetti();
+            useEffect(() => { setStep(0); }, [a, b]);
+            const maxS = steps.length - 1;
+            const cur = steps[Math.min(step, maxS)];
+            const next = () => {
+                AudioController.init(); AudioController.startBGM();
+                if (step < maxS) { const n = step + 1; setStep(n); if (n === maxS) { sfx('success'); fire(); } else sfx('pop'); }
+                else { sfx('swoosh'); if (onDone) onDone(); else setStep(0); }
+            };
+            const prev = () => { if (step > 0) { setStep(step - 1); sfx('pop-reverse'); } };
+            const shiftIdx = steps.findIndex(s => s.t === 'shift1');
+            const phase = shiftIdx >= 0 && step >= shiftIdx ? 'after' : 'before';
+            const fIdx = step >= g0 ? Math.min(steps[Math.min(step, g0 + frames.length - 1)].fi, frames.length - 1) : -1;
+            const cards = steps.slice(0, step + 1).filter(s => s.t === 'pre' || s.t === 'post');
+            return (
+                <div className="relative flex flex-col rounded-[1.6rem] overflow-hidden bg-white border-[5px] border-white shadow-[0_0_0_3px_rgba(255,61,242,0.75),0_25px_55px_rgba(0,0,0,0.5)] lg:h-[calc(100dvh-12.5rem)] lg:min-h-[32rem]">
+                    {confetti}
+                    <DrawingCanvas />
+                    <div className="shrink-0 bg-[#0a0322] px-4 pt-12 sm:pt-3 pb-3 border-b-4" style={{ borderColor: accent }}>
+                        <div className="sm:pr-72">{header}</div>
+                    </div>
+                    <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
+                        <div className="relative flex-1 min-w-0 bg-slate-50 p-3 sm:p-4 flex flex-col items-center gap-3 overflow-auto scrollbar-hide">
+                            <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[radial-gradient(#0f172a_1.5px,transparent_1.5px)] [background-size:20px_20px]" />
+                            <div className="relative w-full rounded-2xl bg-white border-2 border-slate-200 py-2.5 px-2 shadow-sm">
+                                {div.k > 0 ? <ComaShift div={div} phase={phase} size={2.4} /> : (
+                                    <div className="text-center font-black text-slate-900" style={{ fontSize: 'clamp(1.5rem, 2.4rem, 9vw)' }}>{fmtStr(a, { strip: false })} <span className="text-[#7c3aed]">÷</span> {fmtStr(b)}</div>
+                                )}
+                            </div>
+                            <div className="relative w-full flex-1 flex justify-center items-start py-1">
+                                {fIdx >= 0 ? <Galera div={div} frame={frames[fIdx]} size={size} /> : <div className="text-slate-400 font-black text-lg py-10 text-center">La galera aparecerá aquí 👇<br />Presiona «¡Siguiente paso!»</div>}
+                            </div>
+                        </div>
+                        <div className="lg:w-[36%] shrink-0 flex flex-col gap-2.5 p-3 bg-gradient-to-b from-[#f5e1ff] to-[#d9c2ff] border-t-[3px] lg:border-t-0 lg:border-l-[3px] border-white">
+                            <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto scrollbar-hide flex flex-col gap-2">
+                                <div className="text-xs sm:text-sm font-black text-[#7c3aed] uppercase tracking-wider">{cur.badge}</div>
+                                {cards.map((s, i) => (
+                                    <div key={s.badge + i} className={`rounded-2xl px-3 py-2 border-2 animate-slideInRight ${s.final && step === maxS ? 'bg-gradient-to-r from-[#d9ffe6] to-[#fff9c4] border-[#10b981] animate-finalGlowNeon math-final' : 'bg-white border-[#ff3df2] math-current'}`}>
+                                        <div className="text-xs sm:text-sm font-black text-[#c026d3] mb-0.5">{s.badge}</div>
+                                        <MathDisplay latex={s.card.latex} />
+                                    </div>
+                                ))}
+                            </div>
+                            <RobotSays text={cur.msg} step={step} maxSteps={maxS} highlight={step > 0} />
+                            <div className="flex items-stretch gap-2 h-14 sm:h-16">
+                                <button onClick={prev} disabled={step === 0} className="flex-[0.7] rounded-l-2xl bg-[#c4b5fd] text-[#3b0764] font-black text-base border-b-4 border-[#7c3aed] active:border-b-0 active:translate-y-1 disabled:opacity-40 flex items-center justify-center gap-1"><ChevronLeft className="w-6 h-6" /><span className="hidden sm:inline lg:hidden xl:inline">Atrás</span></button>
+                                <div className="bg-[#7c3aed] text-white font-black px-2 text-sm sm:text-base flex items-center justify-center border-b-4 border-[#4c1d95] whitespace-nowrap">{step + 1}/{maxS + 1}</div>
+                                <button onClick={next} className={`flex-[2] rounded-r-2xl text-white font-black text-base sm:text-lg border-b-4 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-1 ${step === maxS ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse' : 'bg-gradient-to-r from-[#ff2e93] to-[#ff9a00] border-[#b4235f]'}`}>{step < maxS ? '¡Siguiente paso!' : (onDone ? 'Siguiente ejercicio' : 'Repetir')}<ChevronRight className="w-6 h-6" /></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 6. ACTIVIDAD 1: TEORÍA ANIMADA DE LOS CASOS
+        // =========================================================================
+        function TeoriaSection() {
+            const [ci, setCi] = useState(0);
+            const c = THEORY_CASES[ci];
+            return (
+                <div className="grid lg:grid-cols-[1fr_2.2fr] gap-4 lg:gap-5">
+                    <div className="flex flex-col gap-3">
+                        <NeonCard className="p-4 border-[#ffe600]/60">
+                            <div className="inline-block px-3 py-1 rounded-full bg-[#ffe600] text-[#0a0322] font-black text-sm">📌 Recordemos</div>
+                            <p className="mt-2 text-white font-bold text-base leading-snug">Cuando queda un <b className="text-[#ff3df2]">resto distinto de cero</b>, se añade un <b className="text-[#ffe600]">cero al resto</b> y una <b className="text-[#00f0ff]">coma en el cociente</b> para seguir dividiendo.</p>
+                        </NeonCard>
+                        <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5">
+                            {THEORY_CASES.map((t, i) => (
+                                <button key={t.id} onClick={() => { sfx('swoosh'); setCi(i); }}
+                                    className={`text-left rounded-2xl p-3 border-2 transition-all active:scale-95 ${ci === i ? 'bg-gradient-to-r from-[#ff2e93] to-[#7c3aed] border-white shadow-[0_0_22px_rgba(255,61,242,0.6)]' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>
+                                    <div className="font-black text-white text-base sm:text-lg">{t.icon} {t.title}</div>
+                                    <div className="text-white/80 font-bold text-sm">Ej.: {fmtStr(t.a)} ÷ {fmtStr(t.b)}</div>
+                                </button>
+                            ))}
+                        </div>
+                        <NeonCard className="p-4">
+                            <div className="text-[#00f0ff] font-black text-sm uppercase tracking-wider">La regla</div>
+                            <p className="text-white font-bold text-base leading-snug mt-1">{c.rule}</p>
+                        </NeonCard>
+                    </div>
+                    <DivisionStepper key={c.id} a={c.a} b={c.b}
+                        header={<><span className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-black text-white bg-gradient-to-r from-[#ff2e93] to-[#7c3aed]">{c.icon} Caso: {c.title}</span><div className="mt-1.5 text-xl sm:text-2xl font-black text-white">Dividimos {fmtStr(c.a)} ÷ {fmtStr(c.b)}</div></>}
+                        onDone={() => setCi((ci + 1) % THEORY_CASES.length)} />
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 7. ACTIVIDAD 2: EJERCICIOS DEL LIBRO PASO A PASO
+        // =========================================================================
+        function LibroSection() {
+            const [i, setI] = useState(0);
+            const ex = BOOK[i];
+            return (
+                <div className="flex flex-col gap-3">
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                        {BOOK.map((e, k) => <Pill key={e.id} active={i === k} grad="from-[#ffe600] to-[#ff8a00]" dark onClick={() => { sfx('pop'); setI(k); }}>{e.emoji ? e.emoji + ' ' : ''}Ejercicio {e.tag}</Pill>)}
+                    </div>
+                    <DivisionStepper key={ex.id} a={ex.a} b={ex.b} pre={ex.pre || []} post={ex.post || []} accent="#ffe600"
+                        header={<><span className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-black text-[#0a0322] bg-gradient-to-r from-[#ffe600] to-[#ff8a00]">📘 Libro · Ejercicio {ex.tag}</span>
+                            <div className="mt-1.5 text-lg sm:text-2xl font-bold text-white leading-snug"><RichText text={ex.text} /></div></>}
+                        onDone={() => setI((i + 1) % BOOK.length)} />
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 8. ACTIVIDAD 3: ¡SAL A LA PIZARRA! (GENERADOR + GALERA GUIADA)
+        // =========================================================================
+        const LEVELS = [
+            { key: 'facil', name: '🟢 Fácil', desc: 'decimal ÷ entero', grad: 'from-[#c6ff00] to-[#00d68f]' },
+            { key: 'medio', name: '🟡 Medio', desc: 'divisor de 2 cifras, resto ≠ 0, entero ÷ decimal', grad: 'from-[#ffe600] to-[#ff8a00]' },
+            { key: 'dificil', name: '🔴 Difícil', desc: 'decimal ÷ decimal', grad: 'from-[#ff2e63] to-[#b14bff]' }
+        ];
+        function buildTasks(div) {
+            const frames = galeraFrames(div);
+            const tasks = [];
+            if (div.k > 0) tasks.push({ type: 'shift', answer: String(div.k), frame: -1 });
+            div.cycles.forEach((c, i) => {
+                const fq = frames.findIndex(f => f.kind === 'q' && f.ci === i);
+                tasks.push({ type: 'q', ci: i, answer: String(c.q), frame: fq - 1, after: fq });
+                if (c.q > 0) {
+                    const fm = frames.findIndex(f => f.kind === 'mult' && f.ci === i);
+                    tasks.push({ type: 'rem', ci: i, answer: String(c.rem), frame: fm });
+                }
+            });
+            return { frames, tasks };
+        }
+
+        function PizarraSection() {
+            const [level, setLevel] = useState('facil');
+            const [mode, setMode] = useState('guiado');
+            const [prob, setProb] = useState(() => genDivision('facil'));
+            const div = useMemo(() => makeDivision(prob.a, prob.b), [prob]);
+            const { frames, tasks } = useMemo(() => buildTasks(div), [div]);
+            const [ti, setTi] = useState(0);
+            const [val, setVal] = useState('');
+            const [state, setState] = useState('idle');
+            const [fails, setFails] = useState(0);
+            const [stars, setStars] = useState(0);
+            const [solved, setSolved] = useState(0);
+            const [msg, setMsg] = useState('');
+            const [confetti, fire] = useConfetti();
+
+            const reset = (p) => { setProb(p); setTi(0); setVal(''); setState('idle'); setFails(0); setMsg(''); };
+            const nuevo = (lv = level) => { sfx('swoosh'); reset(genDivision(lv)); };
+            const done = mode === 'guiado' ? ti >= tasks.length : state === 'ok';
+            const task = tasks[ti];
+            const c = task && task.ci !== undefined ? div.cycles[task.ci] : null;
+
+            const prompt = done ? '' : mode === 'directo' ? `Escribe el cociente de ${fmtStr(prob.a)} ÷ ${fmtStr(prob.b)}` :
+                task.type === 'shift' ? `¿Cuántos lugares corremos la coma para que el divisor ${fmtStr(prob.b)} sea entero?` :
+                task.type === 'q' ? `¿Cuántas veces cabe ${div.d} en ${c.cur}? Escribe la cifra del cociente.` :
+                `Resta: ${c.cur} − ${c.prod} = ? Escribe el resto.`;
+            const hint = () => {
+                if (mode === 'directo') {
+                    const qd = normDec(parseDec(prob.q)); const ent = Math.floor(qd.n / 10 ** qd.d);
+                    return `Pista: estima. ${fmtStr(prob.a)} ÷ ${fmtStr(prob.b)} es un poco más de ${ent}. ¡Usa la galera guiada si lo necesitas!`;
+                }
+                if (task.type === 'shift') return `Pista: cuenta las cifras que hay después de la coma en ${fmtStr(prob.b)}.`;
+                if (task.type === 'q') { const q = c.q; return q === 0 ? `Pista: ${div.d} es mayor que ${c.cur}, así que no cabe ninguna vez.` : `Pista: ${div.d} × ${q} = ${div.d * q} y ${div.d} × ${q + 1} = ${div.d * (q + 1)}. ¿Cuál no se pasa de ${c.cur}?`; }
+                return `Pista: a ${c.cur} le quitamos ${c.prod}.`;
+            };
+            const check = () => {
+                AudioController.init(); AudioController.startBGM();
+                let ok;
+                if (mode === 'directo') ok = decEq(parseDec(val), parseDec(prob.q));
+                else ok = val === task.answer;
+                if (ok) {
+                    setState('ok'); sfx('success');
+                    if (fails === 0) setStars(s => s + 1);
+                    if (mode === 'directo') { setSolved(s => s + 1); fire(); setMsg(`¡Correcto! ${fmtStr(prob.a)} ÷ ${fmtStr(prob.b)} = ${fmtStr(prob.q)} 🎉`); return; }
+                    const n = ti + 1;
+                    setTimeout(() => { setTi(n); setVal(''); setState('idle'); setFails(0); if (n < tasks.length) setMsg(''); }, 650);
+                    if (n >= tasks.length) { setSolved(s => s + 1); fire(); setMsg(`¡Excelente! Resolviste ${fmtStr(prob.a)} ÷ ${fmtStr(prob.b)} = ${fmtStr(prob.q)} 🎉`); }
+                    else setMsg(task.type === 'shift' ? `¡Sí! Corremos la coma ${task.answer} lugar(es). Ahora dividimos ${fmtDec({ n: Number(div.N), d: div.dn })} ÷ ${div.d}.` : '¡Muy bien! ✅');
+                } else {
+                    setState('bad'); sfx('pop-reverse');
+                    const f = fails + 1; setFails(f);
+                    let m = f >= 2 ? hint() : '¡Casi! Inténtalo otra vez. 💪';
+                    if (mode === 'directo') {
+                        const v = parseDec(val);
+                        if (v && String(normDec(v).n) === String(normDec(parseDec(prob.q)).n)) m = '¡Las cifras están bien! Revisa dónde va la coma. 😉';
+                    }
+                    setMsg(m);
+                    setTimeout(() => setState('idle'), 500);
+                }
+            };
+
+            // Qué mostramos en la galera
+            let frame = null, pendingQ = false, pendingRem = null, phase = 'before';
+            if (mode === 'directo') { frame = state === 'ok' ? frames[frames.length - 1] : null; phase = state === 'ok' ? 'after' : 'before'; }
+            else if (done) { frame = frames[frames.length - 1]; phase = 'after'; }
+            else if (task.type === 'shift') { frame = null; phase = 'before'; }
+            else {
+                phase = 'after';
+                frame = frames[Math.max(task.frame, 0)];
+                if (task.type === 'q') pendingQ = true;
+                if (task.type === 'rem') pendingRem = { endCol: c.endCol };
+            }
+            const robot = msg || (done ? '' : (frame && mode === 'guiado' && task.type !== 'shift' ? frame.msg.replace(/¿Cuántas veces.*$/, '') + ' ' : '') + prompt);
+
+            return (
+                <div className="flex flex-col gap-3">
+                    {confetti}
+                    <div className="flex flex-wrap gap-2 items-center justify-between">
+                        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                            {LEVELS.map(l => <Pill key={l.key} active={level === l.key} grad={l.grad} dark={l.key !== 'dificil'} onClick={() => { setLevel(l.key); nuevo(l.key); }}>{l.name}</Pill>)}
+                        </div>
+                        <div className="flex gap-2 items-center">
+                            <Pill active={mode === 'guiado'} grad="from-[#00c2ff] to-[#7c3aed]" onClick={() => { sfx('pop'); setMode('guiado'); reset(prob); }}>🧭 Galera guiada</Pill>
+                            <Pill active={mode === 'directo'} grad="from-[#ff2e93] to-[#ff9a00]" onClick={() => { sfx('pop'); setMode('directo'); reset(prob); }}>⚡ Respuesta directa</Pill>
+                            <div className="px-3 py-2 rounded-2xl bg-[#ffe600] text-[#0a0322] font-black text-base whitespace-nowrap">⭐ {stars} · ✅ {solved}</div>
+                        </div>
+                    </div>
+                    <div className="grid lg:grid-cols-[1.6fr_1fr] gap-4 lg:gap-5">
+                        <div className="relative flex flex-col rounded-[1.6rem] overflow-hidden bg-white border-[5px] border-white shadow-[0_0_0_3px_rgba(255,61,242,0.75),0_25px_55px_rgba(0,0,0,0.5)] min-h-[28rem] lg:min-h-[calc(100dvh-14rem)]">
+                            <DrawingCanvas />
+                            <div className="shrink-0 bg-[#0a0322] px-4 pt-12 sm:pt-3 pb-3 border-b-4 border-[#ff3df2]">
+                                <div className="sm:pr-72">
+                                    <span className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-black text-white bg-gradient-to-r from-[#ff2e93] to-[#7c3aed]">🧑‍🏫 ¡Sal a la pizarra! · {LEVELS.find(l => l.key === level).name} · {prob.kind}</span>
+                                    <div className="mt-1.5 text-2xl sm:text-3xl font-black text-white">Divide: <span className="text-[#ffe600]">{fmtStr(prob.a)} ÷ {fmtStr(prob.b)}</span></div>
+                                </div>
+                            </div>
+                            <div className="flex-1 relative bg-slate-50 p-4 flex flex-col items-center gap-4 overflow-hidden">
+                                <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[radial-gradient(#0f172a_1.5px,transparent_1.5px)] [background-size:20px_20px]" />
+                                {div.k > 0 && <div className="relative w-full rounded-2xl bg-white border-2 border-slate-200 py-2 shadow-sm"><ComaShift div={div} phase={phase} size={2.4} /></div>}
+                                <div className="relative w-full flex justify-center py-2">
+                                    {frame || pendingQ ? <Galera div={div} frame={frame} pendingQ={pendingQ} pendingRem={pendingRem} size={galeraSize(frames, 3.6, 22)} />
+                                        : <div className="text-slate-400 font-black text-xl py-12 text-center">{mode === 'directo' ? '✍️ Resuelve en tu cuaderno o con el lápiz y escribe el cociente' : '👉 Primero, la coma'}</div>}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <RobotSays text={robot || '¡Lista la división!'} highlight={!done} step={done ? 1 : 0} maxSteps={1} />
+                            {!done ? (
+                                <NeonCard className="p-4 flex flex-col gap-3">
+                                    <div className="text-white font-black text-lg leading-snug">{prompt}</div>
+                                    <Display value={val} state={state} />
+                                    <Keypad value={val} onChange={setVal} onOk={check} allowComma={mode === 'directo'} maxLen={mode === 'directo' ? 9 : 4} />
+                                    <div className="flex gap-2">
+                                        <BigBtn kind="ghost" className="flex-1" onClick={() => { sfx('pop'); setMsg(hint()); }}>💡 Pista</BigBtn>
+                                        <BigBtn kind="ghost" className="flex-1" onClick={() => nuevo()}>🔄 Otra</BigBtn>
+                                    </div>
+                                </NeonCard>
+                            ) : (
+                                <NeonCard className="p-6 text-center flex flex-col items-center gap-3">
+                                    <div className="text-6xl">🏆</div>
+                                    <div className="text-white font-black text-2xl">{fmtStr(prob.a)} ÷ {fmtStr(prob.b)} = <span className="text-[#c6ff00]">{fmtStr(prob.q)}</span></div>
+                                    <BigBtn kind="hot" className="w-full text-xl min-h-[4rem]" onClick={() => nuevo()}>🎲 ¡Siguiente alumno! Nueva división</BigBtn>
+                                </NeonCard>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 9. ACTIVIDAD 4: APLICACIONES EN CONTEXTO PERUANO
+        // =========================================================================
+        function AppsSection() {
+            const [i, setI] = useState(null);
+            const [val, setVal] = useState('');
+            const [state, setState] = useState('idle');
+            const [show, setShow] = useState(false);
+            const [okSet, setOkSet] = useState({});
+            const [confetti, fire] = useConfetti();
+            const open = (k) => { sfx('swoosh'); setI(k); setVal(''); setState('idle'); setShow(false); };
+            if (i === null) {
+                return (
+                    <div className="flex flex-col gap-3">
+                        <div className="text-white font-black text-xl sm:text-2xl">🇵🇪 Problemas de la vida diaria · <span className="text-white/70 text-base sm:text-lg">elige uno y ¡a resolver!</span></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                            {APPS.map((p, k) => (
+                                <button key={p.id} onClick={() => open(k)} className="relative text-left p-4 rounded-[1.6rem] bg-white/10 border-[3px] border-white/25 hover:border-white hover:-translate-y-1 transition-all overflow-hidden" style={{ boxShadow: `0 0 26px ${p.color}55` }}>
+                                    <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-60" style={{ background: p.color }} />
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center text-4xl border-2 border-white/60" style={{ background: `linear-gradient(135deg, ${p.color}, #1b0a52)` }}>{p.emoji}</div>
+                                        <div className="font-black text-white text-lg leading-tight">{p.title}</div>
+                                        {okSet[p.id] && <span className="ml-auto text-2xl">✅</span>}
+                                    </div>
+                                    <p className="relative mt-2 text-white/90 font-semibold text-sm sm:text-base leading-snug"><RichText text={p.text} /></p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+            const p = APPS[i];
+            const check = () => {
+                if (decEq(parseDec(val), parseDec(p.answer))) { setState('ok'); sfx('success'); fire(); setOkSet(s => ({ ...s, [p.id]: true })); }
+                else { setState('bad'); sfx('pop-reverse'); setTimeout(() => setState('idle'), 500); }
+            };
+            return (
+                <div className="flex flex-col gap-3">
+                    {confetti}
+                    <div className="flex gap-2 flex-wrap">
+                        <BigBtn kind="ghost" onClick={() => { sfx('pop'); setI(null); }}><ChevronLeft className="w-5 h-5" /> Todos los problemas</BigBtn>
+                        <BigBtn kind="cool" onClick={() => open((i + 1) % APPS.length)}>Siguiente problema <ChevronRight className="w-5 h-5" /></BigBtn>
+                    </div>
+                    {!show ? (
+                        <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4 lg:gap-5">
+                            <NeonCard className="p-5 sm:p-7 flex flex-col items-center text-center gap-4 justify-center" >
+                                <div className="w-32 h-32 sm:w-44 sm:h-44 rounded-[2rem] flex items-center justify-center text-7xl sm:text-8xl border-4 border-white animate-robotFloat" style={{ background: `linear-gradient(135deg, ${p.color}, #1b0a52)`, boxShadow: `0 0 40px ${p.color}` }}>{p.emoji}</div>
+                                <div className="text-2xl sm:text-4xl font-black text-white">{p.title}</div>
+                                <p className="text-white font-bold text-lg sm:text-2xl leading-snug max-w-3xl"><RichText text={p.text} /></p>
+                                <div className="px-4 py-2 rounded-2xl bg-white/10 border border-white/30 text-white font-black text-lg sm:text-xl">Planteamos: <span className="text-[#ffe600]">{fmtStr(p.a, { strip: false })} ÷ {fmtStr(p.b)}</span></div>
+                                {state === 'ok' && <div className="text-[#c6ff00] font-black text-xl sm:text-2xl animate-slideInRight">✅ ¡Correcto! {p.say}</div>}
+                            </NeonCard>
+                            <NeonCard className="p-4 flex flex-col gap-3">
+                                <div className="text-white font-black text-lg">Tu respuesta</div>
+                                <Display value={val} state={state} prefix={p.unitPos === 'pre' ? p.unit : ''} suffix={p.unitPos === 'post' ? p.unit : ''} />
+                                <Keypad value={val} onChange={setVal} onOk={check} disabled={state === 'ok'} />
+                                <BigBtn kind="lime" onClick={() => { sfx('swoosh'); setShow(true); }}>👀 Ver la solución en galera</BigBtn>
+                            </NeonCard>
+                        </div>
+                    ) : (
+                        <DivisionStepper key={p.id} a={p.a} b={p.b} accent={p.color}
+                            post={[{ badge: 'Respuesta', latex: `\\boxed{\\text{${p.say}}}`, msg: `${p.say} 🎉` }]}
+                            header={<><span className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-black text-white" style={{ background: p.color }}>{p.emoji} {p.title}</span><div className="mt-1.5 text-lg sm:text-2xl font-bold text-white leading-snug"><RichText text={p.text} /></div></>}
+                            onDone={() => open((i + 1) % APPS.length)} />
+                    )}
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 10. ACTIVIDAD 5: ¿DÓNDE VA LA COMA? (ESTIMACIÓN)
+        // =========================================================================
+        function ComaSection() {
+            const [g, setG] = useState(() => genComaGame());
+            const [chosen, setChosen] = useState(null);
+            const [streak, setStreak] = useState(0);
+            const [best, setBest] = useState(0);
+            const [confetti, fire] = useConfetti();
+            const digits = g.digits.split('');
+            const q = normDec(parseDec(g.q));
+            const ent = Math.floor(q.n / 10 ** q.d);
+            const choose = (s) => {
+                if (chosen !== null) return;
+                AudioController.init(); AudioController.startBGM();
+                setChosen(s);
+                if (s === g.slot) { sfx('success'); const n = streak + 1; setStreak(n); setBest(b => Math.max(b, n)); if (n % 3 === 0) fire(); }
+                else { sfx('pop-reverse'); setStreak(0); }
+            };
+            const next = () => { sfx('swoosh'); setG(genComaGame()); setChosen(null); };
+            const shown = chosen === null ? null : chosen;
+            return (
+                <div className="grid lg:grid-cols-[1.6fr_1fr] gap-4 lg:gap-5">
+                    {confetti}
+                    <NeonCard className="p-5 sm:p-8 flex flex-col items-center gap-6">
+                        <div className="text-white/80 font-black text-base sm:text-lg uppercase tracking-wider">¿Dónde va la coma? Toca el espacio correcto 👆</div>
+                        <div className="font-black text-white text-4xl sm:text-6xl text-center">{fmtStr(g.a)} <span className="text-[#ff3df2]">÷</span> {fmtStr(g.b)} =</div>
+                        <div className="flex items-center justify-center flex-wrap">
+                            {digits.map((dg, k) => (
+                                <React.Fragment key={k}>
+                                    <div className="w-14 h-20 sm:w-20 sm:h-28 rounded-2xl bg-white text-[#1b0a52] font-black text-5xl sm:text-7xl flex items-center justify-center shadow-[0_0_20px_rgba(0,240,255,0.5)] border-4 border-[#00f0ff]">{dg}</div>
+                                    {k < digits.length - 1 && (
+                                        <button onClick={() => choose(k + 1)} className={`w-9 sm:w-12 h-20 sm:h-28 mx-0.5 rounded-xl flex items-end justify-center font-black text-6xl sm:text-8xl leading-none transition-all ${shown === k + 1 ? (k + 1 === g.slot ? 'text-[#c6ff00] coma-hop' : 'text-[#ff2e63] animate-shake') : chosen !== null && k + 1 === g.slot ? 'text-[#c6ff00]/70' : 'text-white/0 hover:text-white/40 bg-white/5 hover:bg-white/15 border-2 border-dashed border-white/30'}`}>,</button>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                        <button onClick={() => choose(digits.length)} className={`px-5 py-3 rounded-2xl font-black text-lg sm:text-xl border-2 transition-all ${shown === digits.length ? (g.slot === digits.length ? 'bg-[#c6ff00] text-[#0a0322] border-white' : 'bg-[#ff2e63] text-white border-white animate-shake') : chosen !== null && g.slot === digits.length ? 'bg-[#c6ff00]/70 text-[#0a0322] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'}`}>🚫 No lleva coma (es entero)</button>
+                        {chosen !== null && (
+                            <div className="w-full rounded-2xl bg-white p-4 text-center animate-slideInRight">
+                                <div className={`font-black text-2xl sm:text-3xl ${chosen === g.slot ? 'text-[#047857]' : 'text-[#be123c]'}`}>{chosen === g.slot ? '¡Correcto! 🎉' : '¡Uy! Casi 😅'} {fmtStr(g.a)} ÷ {fmtStr(g.b)} = <QuotientText q={fmtStr(g.q)} /></div>
+                                <div className="mt-1 text-slate-700 font-bold text-base sm:text-lg">💡 Estimamos: {fmtStr(g.a)} ÷ {fmtStr(g.b)} es un poco más de <b>{ent}</b>, así que el cociente tiene {String(ent).length} cifra{String(ent).length > 1 ? 's' : ''} entera{String(ent).length > 1 ? 's' : ''}{g.slot === digits.length ? ' y no le sobra nada: es entero.' : '.'}</div>
+                                <BigBtn kind="hot" className="mt-3 mx-auto text-xl min-h-[3.6rem]" onClick={next}>Siguiente <ChevronRight className="w-6 h-6" /></BigBtn>
+                            </div>
+                        )}
+                    </NeonCard>
+                    <div className="flex flex-col gap-3">
+                        <NeonCard className="p-5 text-center">
+                            <div className="text-white/70 font-black uppercase tracking-wider text-sm">Racha</div>
+                            <div className="text-6xl font-black neon-text">{streak} 🔥</div>
+                            <div className="text-white/80 font-bold">Mejor racha: {best}</div>
+                        </NeonCard>
+                        <RobotSays text={chosen === null ? 'Truco: estima primero. Redondea el dividendo y el divisor, divide mentalmente y así sabrás cuántas cifras enteras tiene el cociente.' : chosen === g.slot ? '¡Así se hace! Estimar te ayuda a comprobar si la coma está bien puesta.' : `Fíjate: el resultado debe estar cerca de ${ent}. ¡Con la estimación lo descubres!`} highlight={chosen === null} step={chosen === g.slot ? 1 : 0} maxSteps={1} />
+                    </div>
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 11. ACTIVIDAD 6: COMPETENCIA POR EQUIPOS
+        // =========================================================================
+        const TEAMS = [
+            { name: 'Llamas', emoji: '🦙', color: '#ff2e63' },
+            { name: 'Cóndores', emoji: '🦅', color: '#00c2ff' },
+            { name: 'Pumas', emoji: '🐆', color: '#39ff14' },
+            { name: 'Delfines', emoji: '🐬', color: '#ffe600' }
+        ];
+        function CompetenciaSection() {
+            const [cfg, setCfg] = useState({ teams: 2, rounds: 3, time: 30 });
+            const [game, setGame] = useState(null);
+            const [confetti, fire] = useConfetti();
+            const start = () => {
+                AudioController.init(); AudioController.startBGM(); sfx('swoosh');
+                setGame({ scores: Array(cfg.teams).fill(0), turn: 0, total: cfg.teams * cfg.rounds, q: genQuickQuestion(), left: cfg.time, answer: null, gain: 0, over: false });
+            };
+            useEffect(() => {
+                if (!game || game.answer !== null || game.over) return;
+                const t = setInterval(() => setGame(g => {
+                    if (!g || g.answer !== null) return g;
+                    if (g.left <= 1) { AudioController.play('pop-reverse'); return { ...g, left: 0, answer: '__timeout', gain: 0 }; }
+                    if (g.left <= 6) AudioController.play('hover');
+                    return { ...g, left: g.left - 1 };
+                }), 1000);
+                return () => clearInterval(t);
+            }, [game && game.turn, game && game.answer, game && game.over]);
+            const answer = (opt) => {
+                if (!game || game.answer !== null) return;
+                const ok = opt === game.q.answer;
+                const gain = ok ? 10 + (game.left >= cfg.time / 2 ? 5 : 0) : 0;
+                if (ok) { sfx('success'); } else sfx('pop-reverse');
+                const scores = game.scores.slice(); scores[game.turn % cfg.teams] += gain;
+                setGame({ ...game, answer: opt, gain, scores });
+            };
+            const nextTurn = () => {
+                const n = game.turn + 1;
+                if (n >= game.total) { setGame({ ...game, over: true }); fire(); sfx('success'); return; }
+                sfx('swoosh');
+                setGame({ ...game, turn: n, q: genQuickQuestion(), left: cfg.time, answer: null, gain: 0 });
+            };
+            const Opt = ({ label, onClick, active }) => <button onClick={onClick} className={`px-4 py-2.5 rounded-2xl font-black text-lg border-2 ${active ? 'bg-[#ffe600] text-[#0a0322] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'}`}>{label}</button>;
+
+            if (!game) {
+                return (
+                    <NeonCard className="p-6 sm:p-8 max-w-4xl mx-auto w-full flex flex-col gap-6">
+                        <div className="text-center"><div className="text-6xl">🏆</div><div className="text-3xl sm:text-4xl font-black text-white">Competencia por equipos</div><p className="text-white/80 font-bold text-lg mt-1">Por turnos, cada equipo sale a la pizarra y responde. ¡+10 puntos por acierto y +5 extra si responden en la primera mitad del tiempo!</p></div>
+                        <div><div className="text-white font-black text-lg mb-2">¿Cuántos equipos?</div><div className="flex gap-2 flex-wrap">{[2, 3, 4].map(n => <Opt key={n} label={`${n} equipos`} active={cfg.teams === n} onClick={() => { sfx('pop'); setCfg({ ...cfg, teams: n }); }} />)}</div>
+                            <div className="flex gap-2 flex-wrap mt-3">{TEAMS.slice(0, cfg.teams).map(t => <span key={t.name} className="px-3 py-1.5 rounded-xl font-black text-[#0a0322]" style={{ background: t.color }}>{t.emoji} {t.name}</span>)}</div></div>
+                        <div><div className="text-white font-black text-lg mb-2">Preguntas por equipo</div><div className="flex gap-2 flex-wrap">{[3, 5, 8].map(n => <Opt key={n} label={`${n}`} active={cfg.rounds === n} onClick={() => { sfx('pop'); setCfg({ ...cfg, rounds: n }); }} />)}</div></div>
+                        <div><div className="text-white font-black text-lg mb-2">Tiempo por pregunta</div><div className="flex gap-2 flex-wrap">{[20, 30, 45, 60].map(n => <Opt key={n} label={`${n} s`} active={cfg.time === n} onClick={() => { sfx('pop'); setCfg({ ...cfg, time: n }); }} />)}</div></div>
+                        <BigBtn kind="hot" className="text-2xl min-h-[4.5rem]" onClick={start}>🚀 ¡Empezar la competencia!</BigBtn>
+                    </NeonCard>
+                );
+            }
+            const ti = game.turn % cfg.teams, team = TEAMS[ti];
+            if (game.over) {
+                const order = game.scores.map((s, i) => ({ s, i })).sort((x, y) => y.s - x.s);
+                const top = order[0].s; const winners = order.filter(o => o.s === top);
+                return (
+                    <NeonCard className="p-6 sm:p-10 max-w-4xl mx-auto w-full text-center flex flex-col gap-5">
+                        {confetti}
+                        <div className="text-7xl">🏆</div>
+                        <div className="text-3xl sm:text-5xl font-black text-white">{winners.length > 1 ? '¡Empate!' : `¡Ganan los ${TEAMS[winners[0].i].name}!`} {winners.map(w => TEAMS[w.i].emoji).join(' ')}</div>
+                        <div className="flex flex-col gap-2.5">
+                            {order.map((o, k) => <div key={o.i} className="flex items-center justify-between px-5 py-3 rounded-2xl font-black text-xl sm:text-2xl text-[#0a0322]" style={{ background: TEAMS[o.i].color, transform: k === 0 ? 'scale(1.04)' : 'none' }}><span>{['🥇', '🥈', '🥉', '4.º'][k]} {TEAMS[o.i].emoji} {TEAMS[o.i].name}</span><span>{o.s} pts</span></div>)}
+                        </div>
+                        <div className="flex gap-3 justify-center flex-wrap"><BigBtn kind="hot" onClick={start}>🔁 Revancha</BigBtn><BigBtn kind="ghost" onClick={() => setGame(null)}>⚙️ Cambiar equipos</BigBtn></div>
+                    </NeonCard>
+                );
+            }
+            const pct = (game.left / cfg.time) * 100;
+            return (
+                <div className="flex flex-col gap-4">
+                    <div className={`grid gap-3 ${cfg.teams === 2 ? 'grid-cols-2' : cfg.teams === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4'}`}>
+                        {game.scores.map((s, i) => (
+                            <div key={i} className={`rounded-2xl px-4 py-3 border-4 flex items-center justify-between transition-all ${i === ti ? 'scale-[1.04]' : 'opacity-70'}`} style={{ borderColor: TEAMS[i].color, background: i === ti ? TEAMS[i].color : 'rgba(255,255,255,0.08)', color: i === ti ? '#0a0322' : '#fff', boxShadow: i === ti ? `0 0 30px ${TEAMS[i].color}` : 'none' }}>
+                                <span className="font-black text-lg sm:text-2xl">{TEAMS[i].emoji} {TEAMS[i].name}</span><span className="font-black text-2xl sm:text-4xl tabular-nums">{s}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <NeonCard className="p-5 sm:p-8 flex flex-col gap-5">
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div className="px-4 py-2 rounded-2xl font-black text-xl text-[#0a0322]" style={{ background: team.color }}>Turno: {team.emoji} {team.name}</div>
+                            <div className="text-white/80 font-black text-lg">Pregunta {game.turn + 1} de {game.total}</div>
+                            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center font-black text-3xl sm:text-4xl ${game.left <= 5 && game.answer === null ? 'animate-timer text-white' : 'text-[#0a0322]'}`} style={{ background: `conic-gradient(${game.left <= 5 ? '#ff2e63' : '#c6ff00'} ${pct}%, rgba(255,255,255,0.15) 0)` }}>
+                                <div className="w-[78%] h-[78%] rounded-full bg-[#140a3a] text-white flex items-center justify-center">{game.left}</div>
+                            </div>
+                        </div>
+                        <div className="text-white font-black text-2xl sm:text-4xl text-center leading-snug">{game.q.prompt}</div>
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            {game.q.options.map((o, k) => {
+                                const isAns = o === game.q.answer, picked = game.answer === o, reveal = game.answer !== null;
+                                const base = ['from-[#ff2e93] to-[#ff5f6d]', 'from-[#00c2ff] to-[#3a5bff]', 'from-[#ffb800] to-[#ff8a00]', 'from-[#8b5cf6] to-[#b14bff]'][k % 4];
+                                return (
+                                    <button key={o + k} onClick={() => answer(o)} disabled={reveal}
+                                        className={`min-h-[5rem] sm:min-h-[6.5rem] rounded-3xl font-black text-3xl sm:text-5xl text-white border-b-[6px] border-black/30 transition-all active:translate-y-1 bg-gradient-to-br ${reveal ? (isAns ? 'from-[#10b981] to-[#047857] ring-4 ring-white scale-[1.03]' : picked ? 'from-[#be123c] to-[#7f1d1d] animate-shake' : `${base} opacity-40`) : base}`}>
+                                        {['▲', '◆', '●', '■'][k]} {game.q.type === 'coma' ? `${o} lugar${o === '1' ? '' : 'es'}` : fmtStr(o)}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {game.answer !== null && (
+                            <div className="flex flex-col sm:flex-row items-center gap-4 justify-between rounded-2xl bg-white p-4 animate-slideInRight">
+                                <div className="font-black text-xl sm:text-2xl text-[#1b0a52]">
+                                    {game.answer === '__timeout' ? '⏰ ¡Se acabó el tiempo!' : game.gain > 0 ? `✅ ¡Correcto! +${game.gain} puntos${game.gain > 10 ? ' (¡rápido!)' : ''}` : '❌ ¡Uy! Esta vez no.'}
+                                    <span className="text-slate-600"> La respuesta es {game.q.type === 'coma' ? `${game.q.answer} lugar${game.q.answer === '1' ? '' : 'es'}` : fmtStr(game.q.answer)}.</span>
+                                </div>
+                                <BigBtn kind="cool" className="text-xl min-h-[3.6rem] w-full sm:w-auto" onClick={nextTurn}>{game.turn + 1 >= game.total ? '🏁 Ver resultados' : 'Siguiente turno'} <ChevronRight className="w-6 h-6" /></BigBtn>
+                            </div>
+                        )}
+                    </NeonCard>
+                </div>
+            );
+        }
+
+        // =========================================================================
+        // 12. APLICACIÓN PRINCIPAL
+        // =========================================================================
+        const TABS = [
+            { key: 'teoria', title: '1 · Teoría animada', icon: '🎬', grad: 'from-[#00f5ff] to-[#3a5bff]', desc: 'Los 4 casos: decimal ÷ entero, entero ÷ decimal, decimal ÷ decimal y resto ≠ 0, con la coma que salta y la galera paso a paso.' },
+            { key: 'libro', title: '2 · Ejercicios del libro', icon: '📘', grad: 'from-[#ffe600] to-[#ff8a00]', dark: true, desc: 'Los 9 ejercicios de tu libro resueltos en galera animada, con «¡Siguiente paso!».' },
+            { key: 'pizarra', title: '3 · ¡Sal a la pizarra!', icon: '🧑‍🏫', grad: 'from-[#ff2e93] to-[#7c3aed]', desc: 'Divisiones al azar (fácil, medio, difícil). El alumno escribe cada cifra del cociente y cada resto con el teclado gigante.' },
+            { key: 'apps', title: '4 · Aplicaciones', icon: '🛒', grad: 'from-[#c6ff00] to-[#00d68f]', dark: true, desc: 'Problemas con soles, litros, metros y kilos: el pan, el pollo, la chicha morada, la combi…' },
+            { key: 'coma', title: '5 · ¿Dónde va la coma?', icon: '🎯', grad: 'from-[#ff3df2] to-[#b14bff]', desc: 'Juego de estimación: toca el lugar exacto de la coma en el cociente. ¡Haz tu racha!' },
+            { key: 'equipos', title: '6 · Competencia', icon: '🏆', grad: 'from-[#ff8a00] to-[#ff2e63]', desc: 'De 2 a 4 equipos, con marcador, temporizador y preguntas rápidas en la pantalla.' }
+        ];
+        const BrandBadge = ({ small }) => (
+            <div className={`inline-flex items-center gap-2 rounded-2xl border-2 border-[#ffe600] bg-white/10 backdrop-blur-md text-[#ffe600] font-black uppercase tracking-wider shadow-[0_0_16px_rgba(255,230,0,0.45)] ${small ? 'px-2.5 py-1.5 text-xs' : 'px-4 py-2 text-sm sm:text-base'}`}>
+                <Rocket className={small ? 'w-4 h-4' : 'w-5 h-5'} /> TuProfe20 Lab
+            </div>
+        );
+
+        function App() {
+            const [view, setView] = useState('home');
+            const [tab, setTab] = useState('teoria');
+            const [muted, setMuted] = useState(false);
+            const go = (t) => { AudioController.init(); AudioController.startBGM(); sfx('swoosh'); setTab(t); setView('lab'); window.scrollTo(0, 0); };
+            const toggleMute = () => { AudioController.init(); setMuted(AudioController.toggleMute()); };
+            const MuteBtn = (
+                <button onClick={toggleMute} title={muted ? 'Activar sonido' : 'Silenciar'} className="w-12 h-12 shrink-0 rounded-2xl bg-white/10 border-2 border-white/30 text-white flex items-center justify-center backdrop-blur-md hover:bg-white/20 active:scale-95">
+                    {muted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                </button>
+            );
+            if (view === 'home') {
+                return (
+                    <div className="relative min-h-[100dvh] app-bg text-white">
+                        <FloatingBackground />
+                        <div className="relative z-10 max-w-[96rem] mx-auto px-4 sm:px-8 py-5 sm:py-7 flex flex-col min-h-[100dvh]">
+                            <div className="flex justify-between items-center"><BrandBadge /> {MuteBtn}</div>
+                            <div className="text-center mt-5 sm:mt-7">
+                                <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-[#00f0ff]/60 text-[#5ff6ff] font-black text-xs sm:text-sm tracking-widest uppercase">Aritmética · Aula 2 (5.º y 6.º de primaria)</div>
+                                <h1 className="mt-3 font-black leading-[1.05] text-4xl sm:text-6xl lg:text-7xl tracking-tight">
+                                    <span className="text-[#ffe600] drop-shadow-[0_0_18px_rgba(255,230,0,0.6)]">TuProfe20 Lab</span>
+                                    <span className="text-white/70"> · </span><br className="sm:hidden" />
+                                    <span className="neon-text-big">División de números decimales</span>
+                                </h1>
+                                <p className="mt-3 max-w-3xl mx-auto text-white/85 font-bold text-base sm:text-xl">Mira cómo salta la coma, resuelve en galera paso a paso y ¡sal a la pizarra! 🚀</p>
+                                <div className="mt-4 inline-flex items-center gap-3 px-5 py-2 rounded-3xl bg-white text-[#1b0a52] font-black text-3xl sm:text-5xl shadow-[0_0_30px_rgba(255,61,242,0.6)] border-4 border-[#ff3df2]">
+                                    72<span className="text-[#ff1fd1]">,</span>96 <span className="text-[#7c3aed]">÷</span> 4 = <span className="text-[#047857]">18<span className="text-[#ff1fd1]">,</span>24</span>
+                                </div>
+                            </div>
+                            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {TABS.map((t, i) => (
+                                    <button key={t.key} onClick={() => go(t.key)} className={`group text-left p-5 rounded-[1.8rem] bg-gradient-to-br ${t.grad} border-[3px] border-white/60 shadow-[0_18px_40px_rgba(0,0,0,0.45)] hover:-translate-y-1.5 hover:shadow-[0_0_40px_rgba(255,255,255,0.35)] transition-all relative overflow-hidden ${t.dark ? 'text-[#0a0322]' : 'text-white'}`}>
+                                        <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/20 blur-xl" />
+                                        <div className="flex items-center justify-between"><span className="px-2.5 py-1 rounded-full bg-black/25 text-white font-black text-xs sm:text-sm">Actividad {i + 1}</span><span className="text-4xl">{t.icon}</span></div>
+                                        <div className="mt-2 text-xl sm:text-2xl font-black leading-tight">{t.title.replace(/^\d · /, '')}</div>
+                                        <div className="mt-1 text-sm sm:text-base font-bold opacity-95 leading-snug">{t.desc}</div>
+                                        <div className="mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white text-[#0a0322] font-black text-sm group-hover:gap-2 transition-all">¡Vamos! <ChevronRight className="w-4 h-4" /></div>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-auto pt-6 text-center text-white/60 font-black text-sm flex items-center justify-center gap-1.5"><Rocket className="w-4 h-4" /> TuProfe20 Lab</div>
+                        </div>
+                    </div>
+                );
+            }
+            return (
+                <div className="relative min-h-[100dvh] app-bg text-white">
+                    <FloatingBackground />
+                    <div className="relative z-10 max-w-[120rem] mx-auto px-3 sm:px-5 py-3 flex flex-col gap-3">
+                        <header className="flex items-center gap-2 sm:gap-3">
+                            <button onClick={() => { sfx('swoosh'); setView('home'); }} title="Portada" className="w-12 h-12 shrink-0 rounded-2xl bg-white/10 border-2 border-white/30 flex items-center justify-center backdrop-blur-md hover:bg-white/20 active:scale-95"><Home className="w-6 h-6" /></button>
+                            <h1 className="flex-1 min-w-0 font-black text-lg sm:text-3xl leading-tight">
+                                <span className="text-[#ffe600]">TuProfe20 Lab</span> <span className="text-white/60">·</span> <span className="neon-text">División de números decimales</span>
+                            </h1>
+                            {MuteBtn}
+                        </header>
+                        <nav className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                            {TABS.map(t => <Pill key={t.key} active={tab === t.key} grad={t.grad} dark={t.dark} onClick={() => go(t.key)}>{t.icon} {t.title}</Pill>)}
+                        </nav>
+                        <main>
+                            {tab === 'teoria' && <TeoriaSection />}
+                            {tab === 'libro' && <LibroSection />}
+                            {tab === 'pizarra' && <PizarraSection />}
+                            {tab === 'apps' && <AppsSection />}
+                            {tab === 'coma' && <ComaSection />}
+                            {tab === 'equipos' && <CompetenciaSection />}
+                        </main>
+                        <footer className="py-2 text-center text-white/50 font-black text-xs flex items-center justify-center gap-1.5"><Rocket className="w-3.5 h-3.5" /> TuProfe20 Lab</footer>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
